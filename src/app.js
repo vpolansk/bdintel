@@ -54,7 +54,8 @@ function renderPessoasList() {
     const statuses = Array.isArray(p.status) ? p.status : [p.status];
     const badges = statuses.map(statusBadge).join('');
     const age = fmtAge(p.nascimento);
-    const sub = [p.alcunha ? `"${p.alcunha}"` : null, p.bairro || p.cidade, age].filter(Boolean).join(' · ');
+    const local = [p.cidade, p.bairro].filter(Boolean).join(' · ');
+    const sub = [p.alcunha ? `"${p.alcunha}"` : null, local, age].filter(Boolean).join(' · ');
     const foto = p.foto
       ? `<img src="${p.foto}" onerror="this.parentElement.textContent='👤'">`
       : '👤';
