@@ -397,7 +397,7 @@ function setVeiculoFotoPreview(src) {
   if (!el) return;
   const overlay = vehicleFotoOverlay();
   el.innerHTML = src
-    ? `<img src="${src}" onerror="this.parentElement.innerHTML='🚗'+vehicleFotoOverlay()">${overlay}`
+    ? `<img src="${src}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mv-foto').value.trim(),'Foto do veículo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='🚗'+vehicleFotoOverlay()">${overlay}`
     : `🚗${overlay}`;
 }
 
@@ -981,7 +981,7 @@ function renderVeiculoDetail() {
           <div class="info-item span2"><div class="ilab">Condutor Vinculado</div><div class="ival ${!condutorVinculado?'empty':''}">${condutorVinculado ? `<span style="cursor:pointer;color:var(--accent)" onclick="goPage('pessoas');selectPessoa('${condutorVinculado.id}')">${condutorVinculado.nome}</span>` : '—'}</div></div>
         </div>
       </div>
-      ${v.foto ? `<div class="info-section"><div class="section-label">Foto</div><img src="${v.foto}" style="max-height:160px;border:1px solid var(--border);object-fit:cover" onerror="this.style.display='none'"></div>` : ''}
+      ${v.foto ? `<div class="info-section"><div class="section-label">Foto</div><img src="${v.foto}" onclick="openPhotoViewer('${v.id}','veiculo')" title="Clique para ampliar" style="max-height:160px;border:1px solid var(--border);object-fit:cover;cursor:zoom-in" onerror="this.style.display='none'"></div>` : ''}
       ${v.obs ? `<div class="info-section"><div class="section-label">Observações</div><div class="ival" style="white-space:pre-wrap">${v.obs}</div></div>` : ''}
       ${relacionados.length ? `
         <div class="info-section">
