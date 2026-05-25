@@ -1,6 +1,6 @@
-# ROCAM INTEL
+# BDIntel
 
-Prototipo web estatico do ROCAM INTEL, com login pelo Supabase e dados sincronizados em nuvem.
+Prototipo web estatico do BDIntel, com login pelo Supabase e dados sincronizados em nuvem.
 
 ## Estrutura
 
