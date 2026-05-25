@@ -109,7 +109,6 @@ function flattenDB() {
   DB.pessoas.forEach(item => rows.push({ id: item.id || uid(), kind: 'pessoa', data: item, updated_at }));
   DB.veiculos.forEach(item => rows.push({ id: item.id || uid(), kind: 'veiculo', data: item, updated_at }));
   DB.locais.forEach(item => rows.push({ id: item.id || uid(), kind: 'local', data: item, updated_at }));
-  DB.links.forEach(item => rows.push({ id: item.id || uid(), kind: 'link', data: item, updated_at }));
   return rows;
 }
 
@@ -120,7 +119,6 @@ function rowsToDB(rows) {
     if (row.kind === 'pessoa') next.pessoas.push(item);
     if (row.kind === 'veiculo') next.veiculos.push(item);
     if (row.kind === 'local') next.locais.push(item);
-    if (row.kind === 'link') next.links.push(item);
   });
   return normalizeDB(next);
 }

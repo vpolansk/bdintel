@@ -576,6 +576,14 @@
   </div>
 </div>
 
+<div class="overlay" id="ov-photo">
+  <div class="photo-viewer">
+    <button class="modal-close photo-close" onclick="closeOv('ov-photo')">✕</button>
+    <div class="photo-title" id="photo-title">FOTO</div>
+    <img id="photo-view-img" alt="Foto ampliada">
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <input type="file" id="file-import" style="display:none" accept=".json" onchange="loadImportFile(this)">
 

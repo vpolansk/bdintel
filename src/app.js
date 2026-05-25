@@ -147,12 +147,12 @@ function renderPessoaDetail() {
   const vinculos = (p.vinculos || []).length;
 
   const foto = p.foto
-    ? `<img src="${p.foto}" onerror="this.parentElement.textContent='👤'">`
+    ? `<img src="${p.foto}" onclick="event.stopPropagation();openPhotoViewer('${p.id}','pessoa')" title="Clique para ampliar" onerror="this.parentElement.textContent='👤'">`
     : '👤';
 
   el.innerHTML = `
-    <div class="detail-head">
-      <div class="avatar lg">${foto}</div>
+      <div class="detail-head">
+      <div class="avatar lg" style="${p.foto?'cursor:zoom-in':''}" ${p.foto?`onclick="openPhotoViewer('${p.id}','pessoa')"`:''}>${foto}</div>
       <div class="detail-head-info">
         <div class="detail-name">${p.nome}</div>
         ${p.alcunha ? `<div class="detail-alcunha">"${p.alcunha}"</div>` : ''}
@@ -364,7 +364,7 @@ function openModal_pessoa(id) {
     document.getElementById('mp-vinculos').value = p.vinculosInfo || '';
     document.getElementById('mp-obs').value = p.obs || '';
     if (p.foto) {
-      document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${p.foto}" onerror="this.parentElement.textContent='👤'">`;
+      document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${p.foto}" onclick="event.stopPropagation();openPhotoViewer('${p.id}','pessoa')" title="Clique para ampliar" onerror="this.parentElement.textContent='👤'">`;
     }
   }
   openOv('ov-pessoa');
@@ -374,7 +374,7 @@ function previewFotoUrl() {
   const url = document.getElementById('mp-foto').value.trim();
   const el = document.getElementById('m-pessoa-fotoprev');
   const overlay = `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>`;
-  el.innerHTML = url ? `<img src="${url}" onerror="this.parentElement.innerHTML='👤'+overlay">${overlay}` : `👤${overlay}`;
+  el.innerHTML = url ? `<img src="${url}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivíduo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='👤'+overlay">${overlay}` : `👤${overlay}`;
 }
 
 function previewFotoFile(input) {
@@ -383,7 +383,7 @@ function previewFotoFile(input) {
   reader.onload = e => {
     document.getElementById('mp-foto').value = e.target.result;
     const overlay = `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>`;
-    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${e.target.result}">${overlay}`;
+    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${e.target.result}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivíduo')" title="Clique para ampliar">${overlay}`;
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -1322,6 +1322,21 @@ function doImport() {
 ══════════════════════════════════════════════════════════════ */
 function openOv(id) { document.getElementById(id).classList.add('open'); }
 function closeOv(id) { document.getElementById(id).classList.remove('open'); }
+
+function openPhotoViewer(id, type = 'pessoa') {
+  const item = type === 'pessoa'
+    ? DB.pessoas.find(x => x.id === id)
+    : DB.veiculos.find(x => x.id === id);
+  if (!item || !item.foto) return;
+  openPhotoViewerFromSrc(item.foto, item.nome || item.placa || 'Foto');
+}
+
+function openPhotoViewerFromSrc(src, title = 'Foto') {
+  if (!src) return;
+  document.getElementById('photo-title').textContent = title;
+  document.getElementById('photo-view-img').src = src;
+  openOv('ov-photo');
+}
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
