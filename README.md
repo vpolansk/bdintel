@@ -1,34 +1,23 @@
 # ROCAM INTEL
 
-Protótipo web estático do ROCAM INTEL, refatorado a partir de um arquivo HTML único para uma estrutura mais organizada.
+Prototipo web estatico do ROCAM INTEL, com login pelo Supabase e dados sincronizados em nuvem.
 
 ## Estrutura
 
-- `index.html`: marcação principal da interface e carregamento dos assets.
-- `src/styles.css`: estilos visuais extraídos do protótipo original.
-- `src/db.js`: camada de persistência atual com `localStorage`, isolada para facilitar uma futura troca por banco em nuvem.
-- `src/components.js`: helpers de apresentação e constantes usadas pela interface.
-- `src/app.js`: fluxo da aplicação, renderização, eventos, mapa, modais, importação e exportação.
+- `index.html`: interface principal e carregamento dos assets.
+- `src/styles.css`: estilos visuais da interface.
+- `src/db.js`: conexao com Supabase Auth, tabela `rocam_items` e cache local de emergencia.
+- `src/components.js`: helpers de apresentacao e constantes usadas pela interface.
+- `src/app.js`: fluxo da aplicacao, renderizacao, eventos, mapa, modais, importacao e exportacao.
 
-## Como executar
+## Como usar
 
-Abra o arquivo `index.html` no navegador.
+Abra o link publicado pelo GitHub Pages. O app mostra uma tela de login antes de carregar os dados.
 
-O app continua usando a chave `rocam_intel_v2` no `localStorage`, preservando o comportamento atual de salvar dados localmente no navegador.
+Depois do login, os registros sao carregados da tabela `rocam_items`. Ao salvar, editar, excluir ou importar dados, o app sincroniza as alteracoes com o Supabase.
 
-## Backup em pasta sincronizada
+## Seguranca
 
-Além do `localStorage`, o app pode espelhar os dados em um arquivo JSON escolhido pelo usuário.
+O site usa apenas a chave publica `anon` do Supabase. A protecao dos dados depende das politicas RLS da tabela `rocam_items`, que limitam select, insert, update e delete ao usuario autenticado.
 
-1. Abra o app em Chrome ou Edge.
-2. Clique no botão `☁` no topo.
-3. Use `CRIAR ARQUIVO` para criar `rocam-intel-db.json` dentro de uma pasta do OneDrive, iCloud ou Google Drive.
-4. Depois de conectado, cada alteração salva no app também grava esse arquivo.
-5. Em outro computador, abra o mesmo app, clique em `☁`, escolha `ABRIR EXISTENTE` e selecione o mesmo arquivo sincronizado.
-6. Use `CARREGAR DO ARQUIVO` para trazer os dados da nuvem para aquele navegador.
-
-Por segurança, o navegador sempre exige que você escolha ou autorize o arquivo. O app não acessa pastas da nuvem diretamente sem essa permissão.
-
-## Próximos passos sugeridos
-
-Para integrar com banco de dados em nuvem no futuro, comece substituindo as funções de `src/db.js` por chamadas assíncronas a uma API ou SDK, mantendo o restante da interface consumindo a mesma estrutura de dados (`pessoas`, `veiculos` e `locais`).
+Nunca publique a chave `service_role` no GitHub Pages.

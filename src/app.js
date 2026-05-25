@@ -972,7 +972,62 @@ function renderCloudStatus(status) {
       badge.classList.add('err');
     }
   }
-  if (detail) detail.textContent = status.detail || 'Sem arquivo sincronizado.';
+  if (detail) detail.textContent = status.detail || 'Aguardando conexão com a nuvem.';
+}
+
+function setAuthUi(session) {
+  const overlay = document.getElementById('ov-auth');
+  const status = document.getElementById('auth-user-status');
+  const email = session && session.user ? session.user.email : '';
+  document.body.classList.toggle('auth-locked', !session);
+  if (overlay) overlay.classList.toggle('open', !session);
+  if (status) {
+    status.textContent = email || 'OFFLINE';
+    status.className = 'sync-status' + (email ? ' user' : '');
+  }
+}
+
+function setAuthError(message) {
+  const el = document.getElementById('auth-error');
+  if (el) el.textContent = message || '';
+}
+
+async function handleAuthLogin(event) {
+  event.preventDefault();
+  const btn = document.getElementById('auth-submit');
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  setAuthError('');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'ENTRANDO...';
+  }
+  try {
+    const session = await signInWithPassword(email, password);
+    setAuthUi(session);
+    await loadCloudFileData();
+    toast('Login realizado.');
+  } catch(e) {
+    setAuthUi(null);
+    setAuthError('E-mail ou senha inválidos, ou conexão indisponível.');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'ENTRAR';
+    }
+  }
+}
+
+async function handleAuthLogout() {
+  if (!confirm('Sair deste dispositivo?')) return;
+  try {
+    await signOutCloud();
+    setAuthUi(null);
+    renderAll();
+    toast('Sessão encerrada.');
+  } catch(e) {
+    toast('Não foi possível sair agora.', true);
+  }
 }
 
 function openCloudModal() {
@@ -981,59 +1036,53 @@ function openCloudModal() {
 
 async function createCloudFile() {
   try {
-    const handle = await connectBackupFile('create');
-    if (!handle) return;
     await saveToBackupFileNow();
-    toast('Arquivo sincronizado criado.');
+    toast('Nuvem sincronizada.');
   } catch(e) {
-    if (e.name !== 'AbortError') toast('Não foi possível criar o arquivo.', true);
+    toast('Não foi possível sincronizar a nuvem.', true);
   }
 }
 
 async function openExistingCloudFile() {
   try {
-    const handle = await connectBackupFile('open');
-    if (!handle) return;
-    toast('Arquivo sincronizado conectado.');
-    if (confirm('Carregar os dados deste arquivo agora?\nCancelar mantém os dados atuais e apenas ativa os próximos backups.')) {
-      await loadCloudFileData();
-    }
+    await loadCloudFileData();
   } catch(e) {
-    if (e.name !== 'AbortError') toast('Não foi possível abrir o arquivo.', true);
+    toast('Não foi possível carregar a nuvem.', true);
   }
 }
 
 async function loadCloudFileData() {
   try {
     const data = await importFromBackupFile();
-    if (!data) { toast('Conecte um arquivo sincronizado primeiro.', true); return; }
+    if (!data) { toast('Faça login primeiro.', true); return; }
     selPessoa = selVeiculo = selLocal = null;
     renderAll();
     renderPessoaDetail();
     renderVeiculoDetail();
     renderLocalDetail();
-    toast('Dados carregados do arquivo.');
+    toast('Dados carregados da nuvem.');
   } catch(e) {
-    toast('Erro ao carregar o arquivo sincronizado.', true);
+    toast('Erro ao carregar dados da nuvem.', true);
   }
 }
 
 async function syncCloudNow() {
   try {
     const ok = await saveToBackupFileNow();
-    if (!ok) { toast('Conecte um arquivo sincronizado primeiro.', true); return; }
-    toast('Backup sincronizado.');
+    if (!ok) { toast('Faça login primeiro.', true); return; }
+    toast('Nuvem sincronizada.');
   } catch(e) {
-    toast('Erro ao sincronizar backup.', true);
+    toast('Erro ao sincronizar a nuvem.', true);
   }
 }
 
 async function disconnectCloudFile() {
   try {
     await clearBackupHandle();
-    toast('Arquivo sincronizado desconectado.');
+    setAuthUi(null);
+    toast('Sessão encerrada.');
   } catch(e) {
-    toast('Erro ao desconectar arquivo.', true);
+    toast('Erro ao encerrar sessão.', true);
   }
 }
 
@@ -1127,8 +1176,38 @@ function renderAll() {
 /* ══════════════════════════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════════════════════════ */
-setBackupStatusListener(renderCloudStatus);
-loadDB();
-renderAll();
-initMap();
-restoreBackupFileConnection();
+async function bootApp() {
+  setBackupStatusListener(renderCloudStatus);
+  loadDB();
+  renderAll();
+  initMap();
+
+  try {
+    const localSnapshot = normalizeDB(DB);
+    const session = await getAuthSession();
+    setAuthUi(session);
+    if (!session) {
+      setBackupStatus({ connected: false, label: 'LOGIN', detail: 'Entre para carregar o banco na nuvem.' });
+      return;
+    }
+
+    await loadCloudDB();
+    if (!dbHasRecords(DB) && dbHasRecords(localSnapshot)) {
+      DB = localSnapshot;
+      saveLocalDB();
+      if (confirm('Encontrei dados salvos neste navegador. Enviar esses dados para a nuvem agora?')) {
+        await saveCloudDBNow();
+      }
+    }
+    renderAll();
+    renderPessoaDetail();
+    renderVeiculoDetail();
+    renderLocalDetail();
+  } catch(e) {
+    setAuthUi(null);
+    setBackupStatus({ connected: false, label: 'ERRO', detail: 'Nao foi possivel conectar ao Supabase.' });
+    setAuthError('Não foi possível conectar ao Supabase. Confira a internet e tente novamente.');
+  }
+}
+
+bootApp();

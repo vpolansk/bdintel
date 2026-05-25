@@ -1,19 +1,20 @@
 /*
  * Data access layer for ROCAM INTEL.
- * The app still uses localStorage, with optional mirroring to a user-selected
- * JSON file. Put that file inside OneDrive/iCloud/Google Drive to sync it.
+ * Supabase Auth protects access, while Row Level Security on rocam_items
+ * limits every database operation to the signed-in user.
  */
 let DB = { pessoas: [], veiculos: [], locais: [] };
 
 const DBKEY = 'rocam_intel_v2';
-const BACKUP_DB = 'rocam_intel_backup_file';
-const BACKUP_STORE = 'handles';
-const BACKUP_HANDLE_ID = 'main';
+const SUPABASE_URL = 'https://pvfzrnwhyabteyhftkbp.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2ZnpybndoeWFidGV5aGZ0a2JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjg1NzksImV4cCI6MjA5NTMwNDU3OX0.XncSSGDXI1Cd-Xp1V8mFW1I08paY1RC0hg1scApbX1I';
 
-let backupFileHandle = null;
-let backupWriteChain = Promise.resolve();
+let supabaseClient = null;
+let currentSession = null;
+let cloudSaveChain = Promise.resolve();
+let cloudSaveTimer = null;
 let backupStatusListener = null;
-let lastBackupStatus = { connected: false, label: 'LOCAL', detail: 'Sem arquivo sincronizado.' };
+let lastBackupStatus = { connected: false, label: 'LOGIN', detail: 'Entre para carregar o banco na nuvem.' };
 
 function normalizeDB(data) {
   const safe = data && typeof data === 'object' ? data : {};
@@ -24,27 +25,32 @@ function normalizeDB(data) {
   };
 }
 
+function dbHasRecords(data = DB) {
+  const safe = normalizeDB(data);
+  return safe.pessoas.length > 0 || safe.veiculos.length > 0 || safe.locais.length > 0;
+}
+
 function loadDB() {
   try {
-    const r = localStorage.getItem(DBKEY);
-    if (r) DB = normalizeDB(JSON.parse(r));
+    const raw = localStorage.getItem(DBKEY);
+    if (raw) DB = normalizeDB(JSON.parse(raw));
   } catch(e) {
     DB = normalizeDB(DB);
   }
   DB = normalizeDB(DB);
 }
 
-function saveDB() {
+function saveLocalDB() {
   DB = normalizeDB(DB);
   localStorage.setItem(DBKEY, JSON.stringify(DB));
-  queueBackupWrite();
+}
+
+function saveDB() {
+  saveLocalDB();
+  queueCloudWrite();
 }
 
 function uid() { return '_' + Date.now() + Math.random().toString(36).slice(2,7); }
-
-function supportsBackupFile() {
-  return !!(window.showOpenFilePicker && window.showSaveFilePicker && window.indexedDB);
-}
 
 function setBackupStatusListener(listener) {
   backupStatusListener = listener;
@@ -56,156 +62,170 @@ function setBackupStatus(status) {
   if (backupStatusListener) backupStatusListener(lastBackupStatus);
 }
 
-function openHandleDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(BACKUP_DB, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(BACKUP_STORE);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+function initSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+  if (!window.supabase || !window.supabase.createClient) {
+    throw new Error('Biblioteca do Supabase nao carregou.');
+  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
+  return supabaseClient;
 }
 
-async function saveBackupHandle(handle) {
-  const db = await openHandleDB();
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(BACKUP_STORE, 'readwrite');
-    tx.objectStore(BACKUP_STORE).put(handle, BACKUP_HANDLE_ID);
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error);
+async function getAuthSession() {
+  const client = initSupabaseClient();
+  const { data, error } = await client.auth.getSession();
+  if (error) throw error;
+  currentSession = data.session || null;
+  return currentSession;
+}
+
+function getCurrentUserEmail() {
+  return currentSession && currentSession.user ? currentSession.user.email : '';
+}
+
+async function signInWithPassword(email, password) {
+  const client = initSupabaseClient();
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  currentSession = data.session || null;
+  return currentSession;
+}
+
+async function signOutCloud() {
+  const client = initSupabaseClient();
+  await client.auth.signOut();
+  currentSession = null;
+  DB = normalizeDB({});
+  saveLocalDB();
+  setBackupStatus({ connected: false, label: 'LOGIN', detail: 'Sessao encerrada.' });
+}
+
+function flattenDB() {
+  const rows = [];
+  const updated_at = new Date().toISOString();
+  DB.pessoas.forEach(item => rows.push({ id: item.id || uid(), kind: 'pessoa', data: item, updated_at }));
+  DB.veiculos.forEach(item => rows.push({ id: item.id || uid(), kind: 'veiculo', data: item, updated_at }));
+  DB.locais.forEach(item => rows.push({ id: item.id || uid(), kind: 'local', data: item, updated_at }));
+  return rows;
+}
+
+function rowsToDB(rows) {
+  const next = { pessoas: [], veiculos: [], locais: [] };
+  (rows || []).forEach(row => {
+    const item = { ...(row.data || {}), id: (row.data && row.data.id) || row.id };
+    if (row.kind === 'pessoa') next.pessoas.push(item);
+    if (row.kind === 'veiculo') next.veiculos.push(item);
+    if (row.kind === 'local') next.locais.push(item);
   });
-  db.close();
+  return normalizeDB(next);
 }
 
-async function loadBackupHandle() {
-  const db = await openHandleDB();
-  const handle = await new Promise((resolve, reject) => {
-    const tx = db.transaction(BACKUP_STORE, 'readonly');
-    const req = tx.objectStore(BACKUP_STORE).get(BACKUP_HANDLE_ID);
-    req.onsuccess = () => resolve(req.result || null);
-    req.onerror = () => reject(req.error);
-  });
-  db.close();
-  return handle;
-}
+async function loadCloudDB() {
+  const client = initSupabaseClient();
+  if (!currentSession) await getAuthSession();
+  if (!currentSession) return null;
 
-async function clearBackupHandle() {
-  backupFileHandle = null;
-  const db = await openHandleDB();
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(BACKUP_STORE, 'readwrite');
-    tx.objectStore(BACKUP_STORE).delete(BACKUP_HANDLE_ID);
-    tx.oncomplete = resolve;
-    tx.onerror = () => reject(tx.error);
-  });
-  db.close();
-  setBackupStatus({ connected: false, label: 'LOCAL', detail: 'Arquivo sincronizado desconectado.' });
-}
+  setBackupStatus({ connected: true, label: 'CARREGANDO', detail: 'Carregando dados do Supabase...' });
+  const { data, error } = await client
+    .from('rocam_items')
+    .select('id, kind, data, updated_at')
+    .order('updated_at', { ascending: true });
+  if (error) throw error;
 
-async function ensureHandlePermission(handle, mode = 'readwrite') {
-  const opts = { mode };
-  if ((await handle.queryPermission(opts)) === 'granted') return true;
-  return (await handle.requestPermission(opts)) === 'granted';
-}
-
-async function readBackupFile(handle) {
-  const file = await handle.getFile();
-  const text = await file.text();
-  if (!text.trim()) return normalizeDB({});
-  return normalizeDB(JSON.parse(text));
-}
-
-async function writeBackupFile() {
-  if (!backupFileHandle) return;
-  const writable = await backupFileHandle.createWritable();
-  await writable.write(JSON.stringify(normalizeDB(DB), null, 2));
-  await writable.close();
+  DB = rowsToDB(data);
+  saveLocalDB();
   setBackupStatus({
     connected: true,
-    label: 'SINCRONIZADO',
-    detail: `Último backup gravado em ${new Date().toLocaleString('pt-BR')}.`,
+    label: 'NUVEM',
+    detail: `Dados carregados do Supabase em ${new Date().toLocaleString('pt-BR')}.`,
   });
-}
-
-function queueBackupWrite() {
-  if (!backupFileHandle) return;
-  backupWriteChain = backupWriteChain
-    .catch(() => {})
-    .then(writeBackupFile)
-    .catch(() => {
-      setBackupStatus({
-        connected: true,
-        label: 'ERRO',
-        detail: 'Não foi possível gravar no arquivo sincronizado. Reconecte o arquivo.',
-      });
-    });
-}
-
-async function connectBackupFile(mode = 'open') {
-  if (!supportsBackupFile()) {
-    setBackupStatus({
-      connected: false,
-      label: 'INDISPONÍVEL',
-      detail: 'Seu navegador não permite salvar direto em arquivo. Use Chrome ou Edge.',
-    });
-    return null;
-  }
-
-  const pickerOptions = {
-    types: [{
-      description: 'Backup ROCAM INTEL',
-      accept: { 'application/json': ['.json'] },
-    }],
-    excludeAcceptAllOption: false,
-  };
-
-  const handle = mode === 'create'
-    ? await window.showSaveFilePicker({ ...pickerOptions, suggestedName: 'rocam-intel-db.json' })
-    : (await window.showOpenFilePicker({ ...pickerOptions, multiple: false }))[0];
-
-  if (!(await ensureHandlePermission(handle))) {
-    setBackupStatus({ connected: false, label: 'SEM PERMISSÃO', detail: 'Permissão de gravação negada.' });
-    return null;
-  }
-
-  backupFileHandle = handle;
-  await saveBackupHandle(handle);
-  setBackupStatus({ connected: true, label: 'CONECTADO', detail: `Arquivo conectado: ${handle.name}` });
-  return handle;
-}
-
-async function restoreBackupFileConnection() {
-  if (!supportsBackupFile()) {
-    setBackupStatus({ connected: false, label: 'LOCAL', detail: 'Sem arquivo sincronizado.' });
-    return false;
-  }
-
-  try {
-    const handle = await loadBackupHandle();
-    if (!handle) return false;
-    backupFileHandle = handle;
-    const hasPermission = (await handle.queryPermission({ mode: 'readwrite' })) === 'granted';
-    setBackupStatus({
-      connected: hasPermission,
-      label: hasPermission ? 'CONECTADO' : 'PERMISSÃO',
-      detail: hasPermission ? `Arquivo conectado: ${handle.name}` : 'Reconecte o arquivo para voltar a sincronizar.',
-    });
-    return hasPermission;
-  } catch(e) {
-    setBackupStatus({ connected: false, label: 'LOCAL', detail: 'Sem arquivo sincronizado.' });
-    return false;
-  }
-}
-
-async function importFromBackupFile() {
-  if (!backupFileHandle || !(await ensureHandlePermission(backupFileHandle))) return null;
-  DB = await readBackupFile(backupFileHandle);
-  localStorage.setItem(DBKEY, JSON.stringify(DB));
-  setBackupStatus({ connected: true, label: 'CARREGADO', detail: `Dados carregados de ${backupFileHandle.name}.` });
   return DB;
 }
 
-async function saveToBackupFileNow() {
-  if (!backupFileHandle || !(await ensureHandlePermission(backupFileHandle))) return false;
-  await writeBackupFile();
+async function saveCloudDBNow() {
+  const client = initSupabaseClient();
+  if (!currentSession) return false;
+
+  DB = normalizeDB(DB);
+  const rows = flattenDB();
+  const rowIds = rows.map(row => row.id);
+
+  if (rows.length) {
+    const { error } = await client
+      .from('rocam_items')
+      .upsert(rows, { onConflict: 'id' });
+    if (error) throw error;
+  }
+
+  const { data: existing, error: listError } = await client
+    .from('rocam_items')
+    .select('id');
+  if (listError) throw listError;
+
+  const staleIds = (existing || [])
+    .map(row => row.id)
+    .filter(id => !rowIds.includes(id));
+
+  if (staleIds.length) {
+    const { error: deleteError } = await client
+      .from('rocam_items')
+      .delete()
+      .in('id', staleIds);
+    if (deleteError) throw deleteError;
+  }
+
+  setBackupStatus({
+    connected: true,
+    label: 'SALVO',
+    detail: `Ultima sincronizacao em ${new Date().toLocaleString('pt-BR')}.`,
+  });
   return true;
+}
+
+function queueCloudWrite() {
+  if (!currentSession) return;
+  window.clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = window.setTimeout(() => {
+    setBackupStatus({ connected: true, label: 'SALVANDO', detail: 'Enviando alteracoes para o Supabase...' });
+    cloudSaveChain = cloudSaveChain
+      .catch(() => {})
+      .then(saveCloudDBNow)
+      .catch(() => {
+        setBackupStatus({
+          connected: true,
+          label: 'ERRO',
+          detail: 'Nao foi possivel sincronizar. Confira a internet e tente novamente.',
+        });
+      });
+  }, 500);
+}
+
+async function saveToBackupFileNow() {
+  saveLocalDB();
+  return saveCloudDBNow();
+}
+
+async function importFromBackupFile() {
+  return loadCloudDB();
+}
+
+async function restoreBackupFileConnection() {
+  if (!currentSession) return false;
+  await loadCloudDB();
+  return true;
+}
+
+async function clearBackupHandle() {
+  await signOutCloud();
+}
+
+async function connectBackupFile() {
+  setBackupStatus({ connected: !!currentSession, label: currentSession ? 'NUVEM' : 'LOGIN', detail: 'O app agora usa Supabase, nao arquivo JSON sincronizado.' });
+  return null;
+}
+
+function supportsBackupFile() {
+  return false;
 }

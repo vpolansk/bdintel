@@ -10,7 +10,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="./src/styles.css">
 </head>
-<body>
+<body class="auth-locked">
 
 <!-- ══ HEADER ══ -->
 <header>
@@ -39,8 +39,34 @@
     <button class="btn" onclick="triggerImport()">⬆</button>
     <button class="btn" onclick="openCloudModal()">☁</button>
     <span class="sync-status" id="cloud-sync-status">LOCAL</span>
+    <span class="sync-status" id="auth-user-status">OFFLINE</span>
+    <button class="btn" onclick="handleAuthLogout()">SAIR</button>
   </div>
 </header>
+
+<div class="overlay open auth-overlay" id="ov-auth">
+  <div class="modal narrow">
+    <div class="modal-hd">
+      <span class="modal-title">ACESSO RESTRITO</span>
+    </div>
+    <form class="modal-body auth-form" onsubmit="handleAuthLogin(event)">
+      <div class="auth-brand">
+        <div class="logo">ROCAM</div>
+        <div class="logo-sub">INTEL · NUVEM</div>
+      </div>
+      <div class="fg">
+        <label class="fl">E-mail</label>
+        <input class="fi" id="auth-email" type="email" autocomplete="username" required>
+      </div>
+      <div class="fg">
+        <label class="fl">Senha</label>
+        <input class="fi" id="auth-password" type="password" autocomplete="current-password" required>
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+      <button class="btn primary auth-submit" id="auth-submit" type="submit">ENTRAR</button>
+    </form>
+  </div>
+</div>
 
 <div class="app-body">
 
@@ -456,32 +482,30 @@
 </div>
 </div>
 
-<!-- MODAL: ARQUIVO SINCRONIZADO -->
+<!-- MODAL: BANCO NA NUVEM -->
 <div class="overlay" id="ov-cloud">
   <div class="modal" style="max-width:520px">
-    <div class="modal-head">
-      <span class="modal-title">ARQUIVO SINCRONIZADO</span>
+    <div class="modal-hd">
+      <span class="modal-title">BANCO NA NUVEM</span>
       <button class="modal-close" onclick="closeOv('ov-cloud')">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-row">
         <label class="fl">Status</label>
-        <div class="ival mono" id="cloud-detail">Sem arquivo sincronizado.</div>
+        <div class="ival mono" id="cloud-detail">Aguardando login.</div>
       </div>
       <div class="form-row">
         <label class="fl">Como usar</label>
         <div class="ival" style="line-height:1.6">
-          Crie ou selecione um arquivo JSON dentro da pasta sincronizada do OneDrive, iCloud ou Google Drive.
-          Depois disso, cada alteração no app também será gravada nesse arquivo.
+          Seus cadastros são carregados do Supabase depois do login.
+          Ao salvar, editar, excluir ou importar dados, o app envia as alterações para o banco protegido por usuário.
         </div>
       </div>
     </div>
-    <div class="modal-foot" style="flex-wrap:wrap">
-      <button class="btn" onclick="openExistingCloudFile()">ABRIR EXISTENTE</button>
-      <button class="btn" onclick="createCloudFile()">CRIAR ARQUIVO</button>
-      <button class="btn" onclick="loadCloudFileData()">CARREGAR DO ARQUIVO</button>
+    <div class="modal-ft" style="flex-wrap:wrap">
+      <button class="btn" onclick="loadCloudFileData()">RECARREGAR DA NUVEM</button>
       <button class="btn primary" onclick="syncCloudNow()">SINCRONIZAR AGORA</button>
-      <button class="btn danger" onclick="disconnectCloudFile()">DESCONECTAR</button>
+      <button class="btn danger" onclick="handleAuthLogout()">SAIR</button>
     </div>
   </div>
 </div>
@@ -489,6 +513,7 @@
 <div class="toast" id="toast"></div>
 <input type="file" id="file-import" style="display:none" accept=".json" onchange="loadImportFile(this)">
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./src/db.js"></script>
 <script src="./src/components.js"></script>
 <script src="./src/app.js"></script>

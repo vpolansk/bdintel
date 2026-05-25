@@ -63,6 +63,13 @@ body {
   font-size: 14px;
 }
 
+body.auth-locked header,
+body.auth-locked .app-body {
+  filter: blur(2px);
+  pointer-events: none;
+  user-select: none;
+}
+
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -163,6 +170,10 @@ header {
   color: var(--red3);
   border-color: var(--red2);
   background: rgba(192,48,48,.08);
+}
+.sync-status.user {
+  color: var(--accent);
+  border-color: var(--border2);
 }
 
 /* ── BUTTONS ── */
@@ -854,6 +865,33 @@ header {
 }
 
 /* ── FORM ── */
+.auth-overlay {
+  z-index: 12000;
+}
+.auth-overlay .modal {
+  max-width: 420px;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auth-brand {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 14px;
+  margin-bottom: 8px;
+}
+.auth-error {
+  min-height: 18px;
+  color: var(--red3);
+  font-size: 12px;
+}
+.auth-submit {
+  width: 100%;
+  justify-content: center;
+}
+
 .fg { margin-bottom: 13px; }
 .fg:last-child { margin-bottom: 0; }
 .fl {
