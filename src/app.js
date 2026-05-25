@@ -80,6 +80,7 @@ function selectPessoa(id) {
   dTab = 'dados';
   renderPessoasList();
   renderPessoaDetail();
+  scrollDetailIntoView('pessoa-detail');
 }
 
 function getPessoaNome(id) {
@@ -944,6 +945,7 @@ function selectVeiculo(id) {
   selVeiculo = id;
   renderVeiculosList();
   renderVeiculoDetail();
+  scrollDetailIntoView('veiculo-detail');
 }
 
 function renderVeiculoDetail() {
@@ -1087,6 +1089,7 @@ function selectLocal(id) {
   selLocal = id;
   renderLocaisList();
   renderLocalDetail();
+  scrollDetailIntoView('local-detail');
 }
 
 function renderLocalDetail() {
@@ -1323,6 +1326,18 @@ function doImport() {
 ══════════════════════════════════════════════════════════════ */
 function openOv(id) { document.getElementById(id).classList.add('open'); }
 function closeOv(id) { document.getElementById(id).classList.remove('open'); }
+
+function isMobileLayout() {
+  return window.matchMedia && window.matchMedia('(max-width: 720px)').matches;
+}
+
+function scrollDetailIntoView(id) {
+  if (!isMobileLayout()) return;
+  requestAnimationFrame(() => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
 
 function openPhotoViewer(id, type = 'pessoa') {
   const item = type === 'pessoa'

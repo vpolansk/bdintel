@@ -1087,6 +1087,8 @@ header {
   .app-body {
     overflow-y: auto;
     overflow-x: hidden;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   .page.active {
@@ -1098,7 +1100,7 @@ header {
 
   .list-panel {
     width: 100%;
-    max-height: 44dvh;
+    max-height: 38dvh;
     border-right: none;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
@@ -1130,8 +1132,9 @@ header {
   }
 
   .detail-panel {
-    min-height: 56dvh;
+    min-height: 70dvh;
     overflow: visible;
+    scroll-margin-top: 8px;
   }
 
   .detail-head {
