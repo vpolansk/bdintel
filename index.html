@@ -84,6 +84,8 @@
         </div>
         <div class="filter-chips">
           <span class="chip on-all" data-sf="all" onclick="setSF('all')">TODOS</span>
+          <span class="chip" data-sf="cadastrado" onclick="setSF('cadastrado')">CADASTRADO</span>
+          <span class="chip" data-sf="confirmado" onclick="setSF('confirmado')">CONFIRMADO</span>
           <span class="chip" data-sf="abordado"   onclick="setSF('abordado')">ABORDADO</span>
           <span class="chip" data-sf="preso"      onclick="setSF('preso')">PRESO</span>
           <span class="chip" data-sf="conduzido"  onclick="setSF('conduzido')">CONDUZIDO</span>
@@ -111,6 +113,9 @@
         <span class="map-chip on" data-mf="abordagem"  onclick="toggleMF('abordagem')"><span class="dot" style="background:var(--pin-abord)"></span>ABORDAGEM</span>
         <span class="map-chip on" data-mf="prisao"     onclick="toggleMF('prisao')"><span class="dot" style="background:var(--pin-preso)"></span>PRISÃO</span>
         <span class="map-chip on" data-mf="averiguacao"onclick="toggleMF('averiguacao')"><span class="dot" style="background:var(--pin-averi)"></span>AVERIGUAÇÃO</span>
+        <span class="map-chip on" data-mf="baixa"      onclick="toggleMF('baixa')"><span class="dot" style="background:var(--pin-baixa)"></span>BAIXA</span>
+        <span class="map-chip on" data-mf="media"      onclick="toggleMF('media')"><span class="dot" style="background:var(--pin-media)"></span>MÉDIA</span>
+        <span class="map-chip on" data-mf="alta"       onclick="toggleMF('alta')"><span class="dot" style="background:var(--pin-alta)"></span>ALTA</span>
         <span class="map-chip on" data-mf="residencia" onclick="toggleMF('residencia')"><span class="dot" style="background:var(--pin-res)"></span>RESIDÊNCIA</span>
         <span class="map-chip on" data-mf="local_poi"  onclick="toggleMF('local_poi')"><span class="dot" style="background:var(--pin-poi)"></span>LOCAIS</span>
       </div>
@@ -126,6 +131,9 @@
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-abord)"></div>ABORDAGEM</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-preso)"></div>PRISÃO</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-averi)"></div>AVERIGUAÇÃO</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-baixa)"></div>BAIXA GRAVIDADE</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-media)"></div>MÉDIA GRAVIDADE</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-alta)"></div>ALTA GRAVIDADE</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-res)"></div>RESIDÊNCIA</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-recorr)"></div>LOCAL RECORRENTE</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-poi)"></div>LOCAL DE INTERESSE</div>
@@ -221,6 +229,8 @@
       <div class="fg"><label class="fl">Nome da Mãe</label><input class="fi" id="mp-mae" placeholder="Nome da mãe"></div>
       <div class="fg"><label class="fl">Status Principal</label>
         <select class="fs" id="mp-status">
+          <option value="cadastrado">Cadastrado</option>
+          <option value="confirmado">Confirmado</option>
           <option value="abordado">Abordado</option>
           <option value="averiguado">Averiguado</option>
           <option value="preso">Preso / Condenado</option>
@@ -289,6 +299,15 @@
     <div class="fg" style="margin-top:-6px">
       <button class="btn sm" type="button" id="ev-gps-btn" onclick="getGPS('ev-lat','ev-lng','ev-gps-btn','ev-local')">📍 CAPTURAR LOCALIZAÇÃO ATUAL</button>
     </div>
+    <div class="fg"><label class="fl">Gravidade Operacional</label>
+      <select class="fs" id="ev-gravidade">
+        <option value="">Automática pelo tipo</option>
+        <option value="baixa">Baixa gravidade</option>
+        <option value="media">Média gravidade</option>
+        <option value="alta">Alta / grave</option>
+      </select>
+      <div class="fhint">Use como classificação operacional. A tipificação legal continua no campo Artigo Legal.</div>
+    </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">Motivo da Abordagem</label>
         <select class="fs" id="ev-motivo">
@@ -335,6 +354,38 @@
   <div class="modal-ft">
     <button class="btn" onclick="closeOv('ov-evento')">CANCELAR</button>
     <button class="btn primary" onclick="saveEvento()">REGISTRAR</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: CONFIRMAR DADOS -->
+<div class="overlay" id="ov-confirmar">
+<div class="modal">
+  <div class="modal-hd">
+    <span class="modal-title">CONFIRMAR DADOS</span>
+    <button class="modal-close" onclick="closeOv('ov-confirmar')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Data *</label><input class="fi" id="cf-data" type="date"></div>
+      <div class="fg"><label class="fl">Hora</label><input class="fi" id="cf-hora" type="time"></div>
+    </div>
+    <div class="fg"><label class="fl">Local / Referência</label><input class="fi" id="cf-local" placeholder="Local onde os dados foram conferidos"></div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Guarnição / Viatura</label><input class="fi" id="cf-viatura" placeholder="Ex: R-30, E-07, Moto-15"></div>
+      <div class="fg"><label class="fl">N.º BA / BO / RP</label><input class="fi" id="cf-ba" placeholder="Se houver"></div>
+    </div>
+    <div class="fg"><label class="fl">Dados confirmados / atualizados</label>
+      <textarea class="fta" id="cf-obs" placeholder="Ex: confirmou endereço, alcunha, telefone, veículo, vínculo, foto atualizada..."></textarea>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;color:var(--text2);font-size:12px">
+      <input type="checkbox" id="cf-abordado">
+      Houve abordagem nesta confirmação
+    </label>
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeOv('ov-confirmar')">CANCELAR</button>
+    <button class="btn primary" onclick="saveConfirmacaoDados()">CONFIRMAR</button>
   </div>
 </div>
 </div>
@@ -387,6 +438,16 @@
       <div class="fg"><label class="fl">Placa *</label><input class="fi" id="mv-placa" placeholder="ABC1D23" style="font-family:var(--font-mono);letter-spacing:2px"></div>
       <div class="fg"><label class="fl">Modelo</label><input class="fi" id="mv-modelo" placeholder="Ex: Gol 1.0"></div>
     </div>
+    <div class="fg"><label class="fl">Status do Veículo</label>
+      <select class="fs" id="mv-status">
+        <option value="cadastrado">Cadastrado</option>
+        <option value="confirmado">Confirmado</option>
+        <option value="abordado">Abordado</option>
+        <option value="apreendido">Apreendido</option>
+        <option value="suspeito">Suspeito</option>
+        <option value="vinculado">Vinculado</option>
+      </select>
+    </div>
     <div class="frow c3">
       <div class="fg"><label class="fl">Marca</label><input class="fi" id="mv-marca" placeholder="VW, Fiat…"></div>
       <div class="fg"><label class="fl">Cor</label><input class="fi" id="mv-cor" placeholder="Branco, preto…"></div>
@@ -395,6 +456,11 @@
     <div class="frow c2">
       <div class="fg"><label class="fl">Proprietário Informado</label><input class="fi" id="mv-prop" placeholder="Nome declarado"></div>
       <div class="fg"><label class="fl">Condutor Abordado</label><input class="fi" id="mv-cond" placeholder="Nome do condutor"></div>
+    </div>
+    <div class="fg">
+      <label class="fl">Condutor Vinculado</label>
+      <select class="fs" id="mv-condutor-id"></select>
+      <div class="fhint">Vincule este veículo a uma pessoa já cadastrada para aparecer no perfil dela.</div>
     </div>
     <div style="display:flex;gap:16px;align-items:flex-start;margin:4px 0 12px">
       <div class="foto-preview vehicle" id="m-veiculo-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mv-foto-file').click()" title="Clique para tirar/escolher foto">

@@ -2,9 +2,10 @@ let selPessoa = null, selVeiculo = null, selLocal = null;
 let pessoaFilter = 'all';
 let editingPessoaId = null, editingVeiculoId = null, editingLocalId = null;
 let eventoTargetId = null;
+let confirmacaoTargetId = null;
 let vinculoTargetId = null;
 let mapMain = null, mapMarkers = null;
-let mapFilters = { abordagem: true, prisao: true, averiguacao: true, residencia: true, local_poi: true };
+let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, residencia: true, local_poi: true };
 /* ══════════════════════════════════════════════════════════════
    NAV / PAGES
 ══════════════════════════════════════════════════════════════ */
@@ -80,6 +81,59 @@ function selectPessoa(id) {
   renderPessoaDetail();
 }
 
+function getPessoaNome(id) {
+  const p = DB.pessoas.find(x => x.id === id);
+  return p ? p.nome : '';
+}
+
+function getVeiculosDaPessoa(pessoaId) {
+  return DB.veiculos.filter(v => v.condutorId === pessoaId);
+}
+
+function ensureLinks() {
+  if (!Array.isArray(DB.links)) DB.links = [];
+}
+
+function upsertLink(link) {
+  ensureLinks();
+  const same = DB.links.find(l =>
+    l.fromType === link.fromType &&
+    l.fromId === link.fromId &&
+    l.toType === link.toType &&
+    l.toId === link.toId &&
+    l.relation === link.relation
+  );
+  if (same) {
+    Object.assign(same, link, { count: (same.count || 1) + 1, updatedAt: new Date().toISOString() });
+  } else {
+    DB.links.push({ id: uid(), count: 1, createdAt: new Date().toISOString(), ...link });
+  }
+}
+
+function removeLinksForEntity(type, id) {
+  ensureLinks();
+  DB.links = DB.links.filter(l => !(l.fromType === type && l.fromId === id) && !(l.toType === type && l.toId === id));
+}
+
+function renderPessoaVeiculosSection(p) {
+  const veiculos = getVeiculosDaPessoa(p.id);
+  if (!veiculos.length) return '';
+  return `
+    <div class="info-section">
+      <div class="section-label">Veículos Vinculados (${veiculos.length})</div>
+      ${veiculos.map(v => `
+        <div class="veiculo-card" style="margin-bottom:6px" onclick="goPage('veiculos');selectVeiculo('${v.id}')">
+          <div class="placa">${v.placa}</div>
+          <div class="v-info">
+            <div class="v-model">${[v.marca, v.modelo].filter(Boolean).join(' ') || 'Veículo'} ${v.cor?'· '+v.cor:''}</div>
+            <div class="v-sub">${[v.ano, v.proprietario ? 'Prop.: ' + v.proprietario : null].filter(Boolean).join(' · ') || 'Clique para abrir o cadastro'}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
 function renderPessoaDetail() {
   const p = DB.pessoas.find(x => x.id === selPessoa);
   const el = document.getElementById('pessoa-detail');
@@ -106,6 +160,7 @@ function renderPessoaDetail() {
         <div class="detail-meta" style="margin-top:6px">${[age, p.bairro||p.cidade, `${eventos} ocorrência(s)`, `${vinculos} vínculo(s)`].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="detail-head-actions">
+        <button class="btn sm primary" onclick="openModal_confirmacao('${p.id}')">✓ CONFIRMAR</button>
         <button class="btn sm" onclick="openModal_pessoa('${p.id}')">✏ EDITAR</button>
         <button class="btn sm danger" onclick="deletePessoa('${p.id}')">✕</button>
       </div>
@@ -154,6 +209,7 @@ function renderDTab() {
         </div>
       </div>
       ${p.caracteristicas ? `<div class="info-section"><div class="section-label">Características Físicas</div><div class="ival" style="white-space:pre-wrap">${p.caracteristicas}</div></div>` : ''}
+      ${renderPessoaVeiculosSection(p)}
       ${p.vinculosInfo ? `<div class="info-section"><div class="section-label">Vínculos / Associações</div><div class="ival" style="white-space:pre-wrap">${p.vinculosInfo}</div></div>` : ''}
       ${p.obs ? `<div class="info-section"><div class="section-label">Observações Operacionais</div><div class="ival" style="white-space:pre-wrap">${p.obs}</div></div>` : ''}
     `;
@@ -187,6 +243,7 @@ function renderDTab() {
             <div class="tl-tags">
               ${ev.motivo?`<span class="tl-tag">Motivo: ${ev.motivo}</span>`:''}
               ${ev.resultado?`<span class="tl-tag">Resultado: ${ev.resultado}</span>`:''}
+              ${getEventoGravidade(ev)?`<span class="tl-tag">Gravidade: ${getEventoMapStyle(ev).label}</span>`:''}
               ${ev.viatura?`<span class="tl-tag">🚓 ${ev.viatura}</span>`:''}
               ${ev.ba?`<span class="tl-tag">BA/BO: ${ev.ba}</span>`:''}
               ${ev.tipif?`<span class="tl-tag">⚖ ${ev.tipif}</span>`:''}
@@ -282,7 +339,7 @@ function openModal_pessoa(id) {
     const el = document.getElementById('mp-' + f);
     if (el) el.value = '';
   });
-  document.getElementById('mp-status').value = 'abordado';
+  document.getElementById('mp-status').value = 'cadastrado';
   document.getElementById('m-pessoa-fotoprev').innerHTML = '👤';
 
   if (id) {
@@ -295,7 +352,7 @@ function openModal_pessoa(id) {
     document.getElementById('mp-cpf').value = p.cpf || '';
     document.getElementById('mp-mae').value = p.mae || '';
     const statuses = Array.isArray(p.status) ? p.status[0] : p.status;
-    document.getElementById('mp-status').value = statuses || 'abordado';
+    document.getElementById('mp-status').value = statuses || 'cadastrado';
     document.getElementById('mp-end').value = p.endereco || '';
     document.getElementById('mp-bairro').value = p.bairro || '';
     document.getElementById('mp-cidade').value = p.cidade || '';
@@ -465,7 +522,13 @@ function savePessoa() {
     }
   } else {
     data.id = uid();
-    data.eventos = [];
+    data.eventos = [{
+      tipo: 'cadastro',
+      data: new Date().toISOString().slice(0,10),
+      hora: new Date().toTimeString().slice(0,5),
+      local: 'Cadastro inicial',
+      historico: 'Cadastro preliminar inserido no BDIntel.',
+    }];
     data.vinculos = [];
     DB.pessoas.push(data);
     selPessoa = data.id;
@@ -481,6 +544,7 @@ function savePessoa() {
 function deletePessoa(id) {
   if (!confirm('Excluir este cadastro permanentemente?')) return;
   DB.pessoas = DB.pessoas.filter(p => p.id !== id);
+  removeLinksForEntity('pessoa', id);
   selPessoa = null;
   saveDB();
   renderPessoasList();
@@ -489,6 +553,46 @@ function deletePessoa(id) {
   el.classList.add('blank');
   renderMapMarkers();
   toast('Cadastro excluído.');
+}
+
+/* ── MODAL: CONFIRMAR DADOS ── */
+function openModal_confirmacao(pessoaId) {
+  confirmacaoTargetId = pessoaId;
+  document.getElementById('cf-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('cf-hora').value = new Date().toTimeString().slice(0,5);
+  document.getElementById('cf-local').value = '';
+  document.getElementById('cf-viatura').value = '';
+  document.getElementById('cf-ba').value = '';
+  document.getElementById('cf-obs').value = '';
+  document.getElementById('cf-abordado').checked = false;
+  openOv('ov-confirmar');
+}
+
+function saveConfirmacaoDados() {
+  const p = DB.pessoas.find(x => x.id === confirmacaoTargetId);
+  if (!p) return;
+  const obs = document.getElementById('cf-obs').value.trim();
+  const local = document.getElementById('cf-local').value.trim() || 'Dados confirmados';
+  const houveAbordagem = document.getElementById('cf-abordado').checked;
+  const ev = {
+    tipo: houveAbordagem ? 'abordagem' : 'confirmacao',
+    data: document.getElementById('cf-data').value,
+    hora: document.getElementById('cf-hora').value,
+    local,
+    viatura: document.getElementById('cf-viatura').value.trim(),
+    ba: document.getElementById('cf-ba').value.trim(),
+    historico: obs || (houveAbordagem ? 'Dados confirmados durante abordagem.' : 'Dados cadastrais confirmados.'),
+    resultado: houveAbordagem ? 'Dados confirmados' : 'Confirmação cadastral',
+  };
+  if (!p.eventos) p.eventos = [];
+  p.eventos.push(ev);
+  p.status = houveAbordagem ? 'abordado' : 'confirmado';
+  saveDB();
+  closeOv('ov-confirmar');
+  renderPessoasList();
+  renderPessoaDetail();
+  renderMapMarkers();
+  toast('Dados confirmados na linha do tempo.');
 }
 
 /* ── MODAL: EVENTO ── */
@@ -500,6 +604,7 @@ function openModal_evento(pessoaId) {
   document.getElementById('ev-local').value = '';
   document.getElementById('ev-lat').value = '';
   document.getElementById('ev-lng').value = '';
+  document.getElementById('ev-gravidade').value = '';
   document.getElementById('ev-motivo').value = '';
   document.getElementById('ev-resultado').value = '';
   document.getElementById('ev-viatura').value = '';
@@ -528,6 +633,7 @@ function saveEvento() {
     lng: isNaN(lng) ? null : lng,
     motivo: document.getElementById('ev-motivo').value,
     resultado: document.getElementById('ev-resultado').value,
+    gravidade: document.getElementById('ev-gravidade').value,
     viatura: document.getElementById('ev-viatura').value.trim(),
     ba: document.getElementById('ev-ba').value.trim(),
     objetos: document.getElementById('ev-objetos').value.trim(),
@@ -544,8 +650,29 @@ function saveEvento() {
   // auto-promover status
   if (tipo === 'prisao') {
     p.status = 'preso';
+  } else if (tipo === 'abordagem') {
+    p.status = 'abordado';
+  } else if (tipo === 'averiguacao' && (p.status === 'cadastrado' || p.status === 'confirmado')) {
+    p.status = 'averiguado';
   } else if (tipo === 'conducao' && p.status === 'averiguado') {
     p.status = 'conduzido';
+  }
+
+  if (ev.veiculoPlaca) {
+    const veiculo = DB.veiculos.find(v => v.placa && v.placa.toUpperCase() === ev.veiculoPlaca.toUpperCase());
+    if (veiculo) {
+      upsertLink({
+        fromType: 'pessoa',
+        fromId: p.id,
+        toType: 'veiculo',
+        toId: veiculo.id,
+        relation: 'abordagem',
+        status: 'confirmado',
+        source: tipo,
+        date: ev.data,
+        obs: local,
+      });
+    }
   }
 
   saveDB();
@@ -634,6 +761,33 @@ function inDateRange(d) {
   return true;
 }
 
+function getEventoGravidade(ev) {
+  if (ev.gravidade) return ev.gravidade;
+  if (ev.tipo === 'prisao') return 'alta';
+  if (ev.tipo === 'conducao' || ev.tipo === 'ocorrencia') return 'media';
+  if (ev.tipo === 'averiguacao') return 'baixa';
+  return '';
+}
+
+function getEventoMapStyle(ev) {
+  if (ev.tipo === 'abordagem' && !ev.gravidade) {
+    return { key: 'abordagem', color: 'var(--pin-abord)', label: 'ABORDAGEM' };
+  }
+  if (ev.tipo === 'prisao' && !ev.gravidade) {
+    return { key: 'prisao', color: 'var(--pin-preso)', label: 'PRISÃO' };
+  }
+  if (ev.tipo === 'averiguacao' && !ev.gravidade) {
+    return { key: 'averiguacao', color: 'var(--pin-averi)', label: 'AVERIGUAÇÃO' };
+  }
+  const gravidade = getEventoGravidade(ev);
+  const styles = {
+    baixa: { key: 'baixa', color: 'var(--pin-baixa)', label: 'BAIXA GRAVIDADE' },
+    media: { key: 'media', color: 'var(--pin-media)', label: 'MÉDIA GRAVIDADE' },
+    alta: { key: 'alta', color: 'var(--pin-alta)', label: 'ALTA GRAVIDADE' },
+  };
+  return styles[gravidade] || { key: 'abordagem', color: 'var(--pin-abord)', label: 'ABORDAGEM' };
+}
+
 function renderMapMarkers() {
   if (!mapMarkers || typeof window.L === 'undefined') return;
   mapMarkers.clearLayers();
@@ -651,16 +805,12 @@ function renderMapMarkers() {
     (p.eventos || []).forEach(ev => {
       if (!ev.lat || !ev.lng) return;
       if (!inDateRange(ev.data)) return;
-      let color = 'var(--pin-abord)';
-      let show = false;
-      if (ev.tipo === 'prisao'      && mapFilters.prisao)      { color = 'var(--pin-preso)'; show = true; }
-      if (ev.tipo === 'abordagem'   && mapFilters.abordagem)   { color = 'var(--pin-abord)'; show = true; }
-      if (ev.tipo === 'averiguacao' && mapFilters.averiguacao) { color = 'var(--pin-averi)'; show = true; }
-      if ((ev.tipo === 'ocorrencia'||ev.tipo === 'conducao') && mapFilters.abordagem) { show = true; }
-      if (!show) return;
+      const style = getEventoMapStyle(ev);
+      const color = style.color;
+      if (!mapFilters[style.key]) return;
       const icon = window.L.divIcon({ className:'', html:`<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.3);box-shadow:0 0 5px ${color}80"></div>`, iconSize:[10,10], iconAnchor:[5,5] });
       window.L.marker([ev.lat, ev.lng], { icon })
-        .bindTooltip(`<b>${p.nome}</b><br>${tipoLabel(ev.tipo)} · ${fmtDate(ev.data)}<br>📍 ${ev.local}`, { direction:'top' })
+        .bindTooltip(`<b>${p.nome}</b><br>${tipoLabel(ev.tipo)} · ${style.label} · ${fmtDate(ev.data)}<br>📍 ${ev.local}`, { direction:'top' })
         .on('click', () => { goPage('pessoas'); selectPessoa(p.id); setDTab('timeline'); })
         .addTo(mapMarkers);
     });
@@ -686,21 +836,25 @@ function renderMapMarkers() {
 function openModal_veiculo(id) {
   editingVeiculoId = id;
   document.getElementById('m-veiculo-title').textContent = id ? 'EDITAR VEÍCULO' : 'CADASTRAR VEÍCULO';
-  ['placa','modelo','marca','cor','ano','prop','cond','foto','obs'].forEach(f => {
+  ['placa','modelo','marca','cor','ano','prop','cond','foto','obs','status'].forEach(f => {
     const el = document.getElementById('mv-' + f);
     if (el) el.value = '';
   });
+  document.getElementById('mv-status').value = 'cadastrado';
+  renderCondutorOptions('');
   setVeiculoFotoPreview('');
   if (id) {
     const v = DB.veiculos.find(x => x.id === id);
     if (!v) return;
     document.getElementById('mv-placa').value = v.placa||'';
+    document.getElementById('mv-status').value = v.status||'cadastrado';
     document.getElementById('mv-modelo').value = v.modelo||'';
     document.getElementById('mv-marca').value = v.marca||'';
     document.getElementById('mv-cor').value = v.cor||'';
     document.getElementById('mv-ano').value = v.ano||'';
     document.getElementById('mv-prop').value = v.proprietario||'';
     document.getElementById('mv-cond').value = v.condutor||'';
+    renderCondutorOptions(v.condutorId || '');
     document.getElementById('mv-foto').value = v.foto||'';
     document.getElementById('mv-obs').value = v.obs||'';
     setVeiculoFotoPreview(v.foto || '');
@@ -708,17 +862,29 @@ function openModal_veiculo(id) {
   openOv('ov-veiculo');
 }
 
+function renderCondutorOptions(selectedId = '') {
+  const select = document.getElementById('mv-condutor-id');
+  if (!select) return;
+  const pessoas = [...DB.pessoas].sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+  select.innerHTML = [
+    '<option value="">-- sem vínculo --</option>',
+    ...pessoas.map(p => `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${p.nome || 'Sem nome'}${p.alcunha ? ' - ' + p.alcunha : ''}</option>`),
+  ].join('');
+}
+
 function saveVeiculo() {
   const placa = document.getElementById('mv-placa').value.trim().toUpperCase();
   if (!placa) { toast('Informe a placa.', true); return; }
   const data = {
     placa,
+    status: document.getElementById('mv-status').value,
     modelo: document.getElementById('mv-modelo').value.trim(),
     marca: document.getElementById('mv-marca').value.trim(),
     cor: document.getElementById('mv-cor').value.trim(),
     ano: document.getElementById('mv-ano').value.trim(),
     proprietario: document.getElementById('mv-prop').value.trim(),
     condutor: document.getElementById('mv-cond').value.trim(),
+    condutorId: document.getElementById('mv-condutor-id').value,
     foto: document.getElementById('mv-foto').value.trim(),
     obs: document.getElementById('mv-obs').value.trim(),
   };
@@ -729,6 +895,20 @@ function saveVeiculo() {
     data.id = uid();
     DB.veiculos.push(data);
     selVeiculo = data.id;
+  }
+  removeLinksForEntity('veiculo', editingVeiculoId || data.id);
+  if (data.condutorId) {
+    upsertLink({
+      fromType: 'pessoa',
+      fromId: data.condutorId,
+      toType: 'veiculo',
+      toId: editingVeiculoId || data.id,
+      relation: 'condutor',
+      status: data.status === 'cadastrado' ? 'nao_confirmado' : 'confirmado',
+      source: 'cadastro_veiculo',
+      date: new Date().toISOString().slice(0,10),
+      obs: data.placa,
+    });
   }
   saveDB();
   closeOv('ov-veiculo');
@@ -741,7 +921,7 @@ function renderVeiculosList() {
   const q = document.getElementById('veiculos-search').value.toLowerCase().trim();
   let list = DB.veiculos.filter(v => {
     if (!q) return true;
-    return [v.placa, v.modelo, v.marca, v.cor, v.proprietario, v.condutor].join(' ').toLowerCase().includes(q);
+    return [v.placa, v.modelo, v.marca, v.cor, v.proprietario, v.condutor, getPessoaNome(v.condutorId)].join(' ').toLowerCase().includes(q);
   });
   document.getElementById('cnt-veiculos').textContent = DB.veiculos.length;
   const el = document.getElementById('veiculos-list');
@@ -753,8 +933,8 @@ function renderVeiculosList() {
     <div class="veiculo-card${selVeiculo===v.id?' sel':''}" onclick="selectVeiculo('${v.id}')">
       <div class="placa">${v.placa}</div>
       <div class="v-info">
-        <div class="v-model">${[v.marca, v.modelo].filter(Boolean).join(' ') || '—'} ${v.cor?'· '+v.cor:''}</div>
-        <div class="v-sub">${v.ano||''} ${v.proprietario?'· Prop.: '+v.proprietario:''}</div>
+        <div class="v-model">${statusBadge(v.status || 'cadastrado')} ${[v.marca, v.modelo].filter(Boolean).join(' ') || '—'} ${v.cor?'· '+v.cor:''}</div>
+        <div class="v-sub">${[v.ano, v.proprietario ? 'Prop.: ' + v.proprietario : null, getPessoaNome(v.condutorId) ? 'Cond.: ' + getPessoaNome(v.condutorId) : null].filter(Boolean).join(' · ') || '—'}</div>
       </div>
     </div>`).join('');
 }
@@ -773,8 +953,10 @@ function renderVeiculoDetail() {
 
   // Find related people
   const relacionados = DB.pessoas.filter(p =>
+    v.condutorId === p.id ||
     (p.eventos||[]).some(ev => ev.veiculoPlaca && ev.veiculoPlaca.toUpperCase() === v.placa)
   );
+  const condutorVinculado = DB.pessoas.find(p => p.id === v.condutorId);
 
   el.innerHTML = `
     <div class="detail-head" style="align-items:center">
@@ -783,7 +965,7 @@ function renderVeiculoDetail() {
       </div>
       <div class="detail-head-info" style="margin-left:16px">
         <div class="detail-name">${[v.marca, v.modelo].filter(Boolean).join(' ') || 'Veículo'}</div>
-        <div class="detail-meta">${[v.cor, v.ano].filter(Boolean).join(' · ')}</div>
+        <div class="detail-meta">${statusBadge(v.status || 'cadastrado')} ${[v.cor, v.ano].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="detail-head-actions">
         <button class="btn sm" onclick="openModal_veiculo('${v.id}')">✏ EDITAR</button>
@@ -796,6 +978,7 @@ function renderVeiculoDetail() {
         <div class="info-grid cols2">
           <div class="info-item"><div class="ilab">Proprietário Informado</div><div class="ival ${!v.proprietario?'empty':''}">${v.proprietario||'—'}</div></div>
           <div class="info-item"><div class="ilab">Condutor Abordado</div><div class="ival ${!v.condutor?'empty':''}">${v.condutor||'—'}</div></div>
+          <div class="info-item span2"><div class="ilab">Condutor Vinculado</div><div class="ival ${!condutorVinculado?'empty':''}">${condutorVinculado ? `<span style="cursor:pointer;color:var(--accent)" onclick="goPage('pessoas');selectPessoa('${condutorVinculado.id}')">${condutorVinculado.nome}</span>` : '—'}</div></div>
         </div>
       </div>
       ${v.foto ? `<div class="info-section"><div class="section-label">Foto</div><img src="${v.foto}" style="max-height:160px;border:1px solid var(--border);object-fit:cover" onerror="this.style.display='none'"></div>` : ''}
@@ -816,6 +999,7 @@ function renderVeiculoDetail() {
 function deleteVeiculo(id) {
   if (!confirm('Excluir este veículo?')) return;
   DB.veiculos = DB.veiculos.filter(v => v.id !== id);
+  removeLinksForEntity('veiculo', id);
   selVeiculo = null;
   saveDB();
   renderVeiculosList();

@@ -22,12 +22,13 @@ function normalizeDB(data) {
     pessoas: Array.isArray(safe.pessoas) ? safe.pessoas : [],
     veiculos: Array.isArray(safe.veiculos) ? safe.veiculos : [],
     locais: Array.isArray(safe.locais) ? safe.locais : [],
+    links: Array.isArray(safe.links) ? safe.links : [],
   };
 }
 
 function dbHasRecords(data = DB) {
   const safe = normalizeDB(data);
-  return safe.pessoas.length > 0 || safe.veiculos.length > 0 || safe.locais.length > 0;
+  return safe.pessoas.length > 0 || safe.veiculos.length > 0 || safe.locais.length > 0 || safe.links.length > 0;
 }
 
 function loadDB() {
@@ -108,16 +109,18 @@ function flattenDB() {
   DB.pessoas.forEach(item => rows.push({ id: item.id || uid(), kind: 'pessoa', data: item, updated_at }));
   DB.veiculos.forEach(item => rows.push({ id: item.id || uid(), kind: 'veiculo', data: item, updated_at }));
   DB.locais.forEach(item => rows.push({ id: item.id || uid(), kind: 'local', data: item, updated_at }));
+  DB.links.forEach(item => rows.push({ id: item.id || uid(), kind: 'link', data: item, updated_at }));
   return rows;
 }
 
 function rowsToDB(rows) {
-  const next = { pessoas: [], veiculos: [], locais: [] };
+  const next = { pessoas: [], veiculos: [], locais: [], links: [] };
   (rows || []).forEach(row => {
     const item = { ...(row.data || {}), id: (row.data && row.data.id) || row.id };
     if (row.kind === 'pessoa') next.pessoas.push(item);
     if (row.kind === 'veiculo') next.veiculos.push(item);
     if (row.kind === 'local') next.locais.push(item);
+    if (row.kind === 'link') next.links.push(item);
   });
   return normalizeDB(next);
 }

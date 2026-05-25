@@ -41,6 +41,9 @@
   --pin-abord:  #4090e0;
   --pin-preso:  #e05050;
   --pin-averi:  #e8c840;
+  --pin-baixa:  #40c068;
+  --pin-media:  #f0a830;
+  --pin-alta:   #e05050;
   --pin-res:    #40c068;
   --pin-recorr: #a060f0;
   --pin-poi:    #909090;
@@ -368,6 +371,8 @@ header {
   border: 1px solid;
 }
 .b-abordado  { color: var(--blue3);   border-color: var(--blue2);   background: rgba(64,144,224,.08); }
+.b-cadastrado{ color: var(--text2);   border-color: var(--border2); background: rgba(80,88,112,.06); }
+.b-confirmado{ color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.08); }
 .b-preso     { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.1); }
 .b-conduzido { color: var(--yellow3); border-color: var(--yellow2); background: rgba(192,160,32,.08); }
 .b-testemunha{ color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.08); }
@@ -531,6 +536,7 @@ header {
 .tl-node.ocorrencia { background: rgba(64,144,224,.2);  border-color: var(--blue3);   }
 .tl-node.conducao   { background: rgba(232,200,64,.2);  border-color: var(--yellow3); }
 .tl-node.averiguacao{ background: rgba(80,88,112,.2);   border-color: var(--gray2);   }
+.tl-node.confirmacao{ background: rgba(40,136,74,.18);  border-color: var(--green3);  }
 
 .tl-header {
   display: flex;
@@ -549,6 +555,7 @@ header {
 .tl-type.ocorrencia { color: var(--blue3);   }
 .tl-type.conducao   { color: var(--yellow3); }
 .tl-type.averiguacao{ color: var(--gray2);   }
+.tl-type.confirmacao{ color: var(--green3);  }
 
 .tl-dt {
   font-family: var(--font-mono);

@@ -11,6 +11,8 @@ function fmtAge(nasc) {
 }
 function statusBadge(s) {
   const map = {
+    cadastrado: ['b-cadastrado','CADASTRADO'],
+    confirmado: ['b-confirmado','CONFIRMADO'],
     abordado:   ['b-abordado',  'ABORDADO'],
     preso:      ['b-preso',     'PRESO'],
     conduzido:  ['b-conduzido', 'CONDUZIDO'],
@@ -22,9 +24,10 @@ function statusBadge(s) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 function tipoLabel(t) {
-  return { abordagem:'ABORDAGEM', prisao:'PRISÃO EM FLAGRANTE', conducao:'CONDUÇÃO', averiguacao:'AVERIGUAÇÃO', ocorrencia:'OCORRÊNCIA' }[t] || t.toUpperCase();
+  return { cadastro:'CADASTRO INICIAL', confirmacao:'CONFIRMAÇÃO DE DADOS', abordagem:'ABORDAGEM', prisao:'PRISÃO EM FLAGRANTE', conducao:'CONDUÇÃO', averiguacao:'AVERIGUAÇÃO', ocorrencia:'OCORRÊNCIA' }[t] || t.toUpperCase();
 }
 function tipoClass(t) {
+  if (t === 'cadastro' || t === 'confirmacao') return 'confirmacao';
   return { prisao:'prisao', conducao:'conducao' }[t] || (t==='ocorrencia'?'abordagem':t);
 }
 
