@@ -697,7 +697,8 @@ header {
 /* ══════════════════════════════════════
    PAGE: VEÍCULOS
 ══════════════════════════════════════ */
-#page-veiculos { flex-direction: row; }
+#page-veiculos,
+#page-ocorrencias { flex-direction: row; }
 
 .veiculo-card {
   display: flex;
@@ -708,6 +709,36 @@ header {
   cursor: pointer;
   transition: background .12s;
   position: relative;
+}
+
+.ocorrencia-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .12s;
+  position: relative;
+}
+.ocorrencia-card:hover { background: var(--bg3); }
+.ocorrencia-card.sel { background: rgba(200,160,64,.05); }
+.ocorrencia-card.sel::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+.oc-title {
+  font-family: var(--font-head);
+  font-size: 14px;
+  font-weight: 700;
+}
+.oc-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text3);
 }
 .veiculo-card:hover { background: var(--bg3); }
 .veiculo-card.sel { background: rgba(200,160,64,.05); }

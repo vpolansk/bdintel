@@ -3,7 +3,7 @@
  * Supabase Auth protects access, while Row Level Security on rocam_items
  * limits every database operation to the signed-in user.
  */
-let DB = { pessoas: [], veiculos: [], locais: [] };
+let DB = { pessoas: [], veiculos: [], locais: [], ocorrencias: [] };
 
 const DBKEY = 'rocam_intel_v2';
 const SUPABASE_URL = 'https://pvfzrnwhyabteyhftkbp.supabase.co';
@@ -22,13 +22,14 @@ function normalizeDB(data) {
     pessoas: Array.isArray(safe.pessoas) ? safe.pessoas : [],
     veiculos: Array.isArray(safe.veiculos) ? safe.veiculos : [],
     locais: Array.isArray(safe.locais) ? safe.locais : [],
+    ocorrencias: Array.isArray(safe.ocorrencias) ? safe.ocorrencias : [],
     links: Array.isArray(safe.links) ? safe.links : [],
   };
 }
 
 function dbHasRecords(data = DB) {
   const safe = normalizeDB(data);
-  return safe.pessoas.length > 0 || safe.veiculos.length > 0 || safe.locais.length > 0 || safe.links.length > 0;
+  return safe.pessoas.length > 0 || safe.veiculos.length > 0 || safe.locais.length > 0 || safe.ocorrencias.length > 0 || safe.links.length > 0;
 }
 
 function loadDB() {
@@ -109,16 +110,18 @@ function flattenDB() {
   DB.pessoas.forEach(item => rows.push({ id: item.id || uid(), kind: 'pessoa', data: item, updated_at }));
   DB.veiculos.forEach(item => rows.push({ id: item.id || uid(), kind: 'veiculo', data: item, updated_at }));
   DB.locais.forEach(item => rows.push({ id: item.id || uid(), kind: 'local', data: item, updated_at }));
+  DB.ocorrencias.forEach(item => rows.push({ id: item.id || uid(), kind: 'ocorrencia', data: item, updated_at }));
   return rows;
 }
 
 function rowsToDB(rows) {
-  const next = { pessoas: [], veiculos: [], locais: [], links: [] };
+  const next = { pessoas: [], veiculos: [], locais: [], ocorrencias: [], links: [] };
   (rows || []).forEach(row => {
     const item = { ...(row.data || {}), id: (row.data && row.data.id) || row.id };
     if (row.kind === 'pessoa') next.pessoas.push(item);
     if (row.kind === 'veiculo') next.veiculos.push(item);
     if (row.kind === 'local') next.locais.push(item);
+    if (row.kind === 'ocorrencia') next.ocorrencias.push(item);
   });
   return normalizeDB(next);
 }

@@ -26,6 +26,9 @@
     <div class="nav-tab" onclick="goPage('mapa')" id="ntab-mapa">
       🗺 MAPA
     </div>
+    <div class="nav-tab" onclick="goPage('ocorrencias')" id="ntab-ocorrencias">
+      OCORRENCIAS <span class="count" id="cnt-ocorrencias">0</span>
+    </div>
     <div class="nav-tab" onclick="goPage('veiculos')" id="ntab-veiculos">
       🚗 VEÍCULOS <span class="count" id="cnt-veiculos">0</span>
     </div>
@@ -143,6 +146,25 @@
   <!-- ══════════════════════════════════
        PAGE: VEÍCULOS
   ══════════════════════════════════ -->
+  <div class="page" id="page-ocorrencias">
+    <div class="list-panel">
+      <div class="panel-header">
+        <div class="panel-title">Ocorrencias</div>
+        <div class="search-wrap">
+          <span class="search-icon">âŒ•</span>
+          <input type="text" id="ocorrencias-search" placeholder="Local, historico, BA/BO, envolvidos..." oninput="renderOcorrenciasList()">
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn primary sm" style="width:100%" onclick="openModal_ocorrencia(null)">ï¼‹ CADASTRAR OCORRENCIA</button>
+        </div>
+      </div>
+      <div class="scroll-list" id="ocorrencias-list"></div>
+    </div>
+    <div class="detail-panel blank" id="ocorrencia-detail">
+      <div class="blank-msg">// SELECIONE UMA OCORRENCIA</div>
+    </div>
+  </div>
+
   <div class="page" id="page-veiculos">
     <div class="list-panel">
       <div class="panel-header">
@@ -422,6 +444,63 @@
   <div class="modal-ft">
     <button class="btn" onclick="closeOv('ov-vinculo')">CANCELAR</button>
     <button class="btn primary" onclick="saveVinculo()">ADICIONAR</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: OCORRENCIA -->
+<div class="overlay" id="ov-ocorrencia">
+<div class="modal wide">
+  <div class="modal-hd">
+    <span class="modal-title" id="m-ocorrencia-title">CADASTRAR OCORRENCIA</span>
+    <button class="modal-close" onclick="closeOv('ov-ocorrencia')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Tipo</label>
+        <select class="fs" id="oc-tipo">
+          <option value="ocorrencia">Ocorrencia</option>
+          <option value="averiguacao">Averiguacao</option>
+          <option value="abordagem">Abordagem</option>
+          <option value="prisao">Prisao</option>
+          <option value="conducao">Conducao</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Gravidade</label>
+        <select class="fs" id="oc-gravidade">
+          <option value="baixa">Baixa gravidade</option>
+          <option value="media">Media gravidade</option>
+          <option value="alta">Alta / grave</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Data *</label><input class="fi" id="oc-data" type="date"></div>
+      <div class="fg"><label class="fl">Hora</label><input class="fi" id="oc-hora" type="time"></div>
+    </div>
+    <div class="fg"><label class="fl">Local / Referencia *</label><input class="fi" id="oc-local" placeholder="Rua, bairro, ponto de referencia"></div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Latitude</label><input class="fi" id="oc-lat" placeholder="-29.7600"></div>
+      <div class="fg"><label class="fl">Longitude</label><input class="fi" id="oc-lng" placeholder="-51.1500"></div>
+    </div>
+    <div class="fg" style="margin-top:-6px">
+      <button class="btn sm" type="button" id="oc-gps-btn" onclick="getGPS('oc-lat','oc-lng','oc-gps-btn','oc-local')">USAR LOCALIZACAO ATUAL</button>
+    </div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">N.º BA / BO / RP</label><input class="fi" id="oc-ba" placeholder="Ex: 2026/00012345"></div>
+      <div class="fg"><label class="fl">Veiculos Envolvidos</label><input class="fi" id="oc-veiculos" placeholder="Placas ou descricao"></div>
+    </div>
+    <div class="fg"><label class="fl">Pessoas Vinculadas</label>
+      <select class="fs" id="oc-pessoas" multiple style="min-height:120px"></select>
+      <div class="fhint">Pode ficar vazio. Depois, ao editar a ocorrencia, voce vincula autores, suspeitos, vitimas ou testemunhas.</div>
+    </div>
+    <div class="fg"><label class="fl">Historico *</label>
+      <textarea class="fta" style="min-height:110px" id="oc-historico" placeholder="Descreva o fato, possiveis envolvidos, veiculos suspeitos, objetos, providencias..."></textarea>
+    </div>
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeOv('ov-ocorrencia')">CANCELAR</button>
+    <button class="btn primary" onclick="saveOcorrencia()">SALVAR OCORRENCIA</button>
   </div>
 </div>
 </div>

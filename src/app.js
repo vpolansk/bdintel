@@ -1,6 +1,6 @@
-let selPessoa = null, selVeiculo = null, selLocal = null;
+let selPessoa = null, selVeiculo = null, selLocal = null, selOcorrencia = null;
 let pessoaFilter = 'all';
-let editingPessoaId = null, editingVeiculoId = null, editingLocalId = null;
+let editingPessoaId = null, editingVeiculoId = null, editingLocalId = null, editingOcorrenciaId = null;
 let eventoTargetId = null;
 let confirmacaoTargetId = null;
 let vinculoTargetId = null;
@@ -546,6 +546,9 @@ function savePessoa() {
 function deletePessoa(id) {
   if (!confirm('Excluir este cadastro permanentemente?')) return;
   DB.pessoas = DB.pessoas.filter(p => p.id !== id);
+  (DB.ocorrencias || []).forEach(oc => {
+    if (Array.isArray(oc.pessoasIds)) oc.pessoasIds = oc.pessoasIds.filter(pid => pid !== id);
+  });
   removeLinksForEntity('pessoa', id);
   selPessoa = null;
   saveDB();
@@ -697,6 +700,209 @@ function deleteEvento(pessoaId, idx) {
 }
 
 /* ── MODAL: VÍNCULO ── */
+function getOcorrenciaTitulo(oc) {
+  return oc.local || oc.ba || 'Ocorrencia sem local';
+}
+
+function getOcorrenciaPessoas(oc) {
+  const ids = Array.isArray(oc.pessoasIds) ? oc.pessoasIds : [];
+  return DB.pessoas.filter(p => ids.includes(p.id));
+}
+
+function renderOcorrenciasList() {
+  const search = document.getElementById('ocorrencias-search');
+  const q = search ? search.value.toLowerCase().trim() : '';
+  const list = (DB.ocorrencias || []).filter(oc => {
+    if (!q) return true;
+    const nomes = getOcorrenciaPessoas(oc).map(p => p.nome).join(' ');
+    return [oc.local, oc.historico, oc.ba, oc.veiculos, nomes, tipoLabel(oc.tipo || 'ocorrencia')].join(' ').toLowerCase().includes(q);
+  }).sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')));
+
+  const cnt = document.getElementById('cnt-ocorrencias');
+  if (cnt) cnt.textContent = (DB.ocorrencias || []).length;
+  const el = document.getElementById('ocorrencias-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = `<div class="empty-state">// NENHUMA OCORRENCIA CADASTRADA</div>`;
+    return;
+  }
+  el.innerHTML = list.map(oc => {
+    const style = getEventoMapStyle(oc);
+    const pessoas = getOcorrenciaPessoas(oc);
+    return `<div class="ocorrencia-card${selOcorrencia===oc.id?' sel':''}" onclick="selectOcorrencia('${oc.id}')">
+      <div class="oc-title">${tipoLabel(oc.tipo || 'ocorrencia')} - ${style.label}</div>
+      <div class="oc-sub">${fmtDate(oc.data)}${oc.hora?' - '+oc.hora:''} - ${getOcorrenciaTitulo(oc)}</div>
+      <div class="oc-sub">${pessoas.length ? pessoas.map(p => p.nome).join(', ') : 'Sem pessoa vinculada'}${oc.veiculos ? ' - ' + oc.veiculos : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectOcorrencia(id) {
+  selOcorrencia = id;
+  renderOcorrenciasList();
+  renderOcorrenciaDetail();
+  scrollDetailIntoView('ocorrencia-detail');
+}
+
+function renderOcorrenciaDetail() {
+  const oc = (DB.ocorrencias || []).find(x => x.id === selOcorrencia);
+  const el = document.getElementById('ocorrencia-detail');
+  if (!el) return;
+  if (!oc) { el.innerHTML = '<div class="blank-msg">// SELECIONE UMA OCORRENCIA</div>'; el.classList.add('blank'); return; }
+  el.classList.remove('blank');
+  const pessoas = getOcorrenciaPessoas(oc);
+  const style = getEventoMapStyle(oc);
+  el.innerHTML = `
+    <div class="detail-head">
+      <div class="detail-head-info">
+        <div class="detail-name">${tipoLabel(oc.tipo || 'ocorrencia')}</div>
+        <div class="detail-meta">${style.label} - ${fmtDate(oc.data)}${oc.hora?' - '+oc.hora:''}</div>
+        <div class="detail-meta">${oc.local || 'Sem local informado'}</div>
+      </div>
+      <div class="detail-head-actions">
+        <button class="btn sm" onclick="openModal_ocorrencia('${oc.id}')">EDITAR</button>
+        <button class="btn sm danger" onclick="deleteOcorrencia('${oc.id}')">EXCLUIR</button>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="info-section">
+        <div class="section-label">Historico</div>
+        <div class="ival" style="white-space:pre-wrap">${oc.historico || '-'}</div>
+      </div>
+      <div class="info-section">
+        <div class="section-label">Dados Operacionais</div>
+        <div class="info-grid">
+          <div class="info-item"><div class="ilab">BA / BO / RP</div><div class="ival ${!oc.ba?'empty':''}">${oc.ba || '-'}</div></div>
+          <div class="info-item"><div class="ilab">Veiculos</div><div class="ival ${!oc.veiculos?'empty':''}">${oc.veiculos || '-'}</div></div>
+          <div class="info-item"><div class="ilab">Latitude</div><div class="ival mono ${!oc.lat?'empty':''}">${oc.lat || '-'}</div></div>
+          <div class="info-item"><div class="ilab">Longitude</div><div class="ival mono ${!oc.lng?'empty':''}">${oc.lng || '-'}</div></div>
+        </div>
+      </div>
+      <div class="info-section">
+        <div class="section-label">Pessoas Vinculadas (${pessoas.length})</div>
+        ${pessoas.length ? pessoas.map(p => `
+          <div class="person-card" style="padding:8px 10px;margin-bottom:4px;border:1px solid var(--border)" onclick="goPage('pessoas');selectPessoa('${p.id}')">
+            <div class="avatar" style="width:32px;height:32px;font-size:14px">${p.foto?`<img src="${p.foto}" onerror="this.parentElement.textContent='P'">`:'P'}</div>
+            <div class="pc-info"><div class="pc-name" style="font-size:13px">${p.nome}</div><div class="pc-sub">${p.bairro||p.cidade||'-'}</div></div>
+          </div>`).join('') : '<div class="empty-state">// NENHUMA PESSOA VINCULADA</div>'}
+      </div>
+    </div>
+  `;
+}
+
+function fillOcorrenciaPessoasOptions(selectedIds = []) {
+  const sel = document.getElementById('oc-pessoas');
+  if (!sel) return;
+  const ids = new Set(selectedIds);
+  sel.innerHTML = DB.pessoas
+    .slice()
+    .sort((a,b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
+    .map(p => `<option value="${p.id}"${ids.has(p.id) ? ' selected' : ''}>${p.nome || 'Sem nome'}${p.alcunha ? ' - ' + p.alcunha : ''}</option>`)
+    .join('');
+}
+
+function openModal_ocorrencia(id) {
+  editingOcorrenciaId = id;
+  document.getElementById('m-ocorrencia-title').textContent = id ? 'EDITAR OCORRENCIA' : 'CADASTRAR OCORRENCIA';
+  document.getElementById('oc-tipo').value = 'ocorrencia';
+  document.getElementById('oc-gravidade').value = 'media';
+  document.getElementById('oc-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('oc-hora').value = new Date().toTimeString().slice(0,5);
+  ['local','lat','lng','ba','veiculos','historico'].forEach(f => document.getElementById('oc-' + f).value = '');
+  fillOcorrenciaPessoasOptions([]);
+  if (id) {
+    const oc = (DB.ocorrencias || []).find(x => x.id === id);
+    if (!oc) return;
+    document.getElementById('oc-tipo').value = oc.tipo || 'ocorrencia';
+    document.getElementById('oc-gravidade').value = oc.gravidade || 'media';
+    document.getElementById('oc-data').value = oc.data || '';
+    document.getElementById('oc-hora').value = oc.hora || '';
+    document.getElementById('oc-local').value = oc.local || '';
+    document.getElementById('oc-lat').value = oc.lat || '';
+    document.getElementById('oc-lng').value = oc.lng || '';
+    document.getElementById('oc-ba').value = oc.ba || '';
+    document.getElementById('oc-veiculos').value = oc.veiculos || '';
+    document.getElementById('oc-historico').value = oc.historico || '';
+    fillOcorrenciaPessoasOptions(oc.pessoasIds || []);
+  }
+  openOv('ov-ocorrencia');
+}
+
+function syncOcorrenciaComPessoas(oc) {
+  DB.pessoas.forEach(p => {
+    if (!Array.isArray(p.eventos)) p.eventos = [];
+    p.eventos = p.eventos.filter(ev => ev.ocorrenciaId !== oc.id);
+    if ((oc.pessoasIds || []).includes(p.id)) {
+      p.eventos.push({
+        tipo: oc.tipo || 'ocorrencia',
+        data: oc.data,
+        hora: oc.hora,
+        local: oc.local,
+        lat: oc.lat,
+        lng: oc.lng,
+        gravidade: oc.gravidade,
+        ba: oc.ba,
+        historico: oc.historico,
+        resultado: 'Vinculado a ocorrencia',
+        veiculoPlaca: oc.veiculos,
+        ocorrenciaId: oc.id,
+      });
+    }
+  });
+}
+
+function saveOcorrencia() {
+  const local = document.getElementById('oc-local').value.trim();
+  const historico = document.getElementById('oc-historico').value.trim();
+  if (!local || !historico) { toast('Informe o local e o historico.', true); return; }
+  const lat = parseFloat(document.getElementById('oc-lat').value);
+  const lng = parseFloat(document.getElementById('oc-lng').value);
+  const pessoasIds = Array.from(document.getElementById('oc-pessoas').selectedOptions).map(opt => opt.value);
+  const data = {
+    tipo: document.getElementById('oc-tipo').value,
+    gravidade: document.getElementById('oc-gravidade').value,
+    data: document.getElementById('oc-data').value,
+    hora: document.getElementById('oc-hora').value,
+    local,
+    lat: isNaN(lat) ? null : lat,
+    lng: isNaN(lng) ? null : lng,
+    ba: document.getElementById('oc-ba').value.trim(),
+    veiculos: document.getElementById('oc-veiculos').value.trim(),
+    pessoasIds,
+    historico,
+  };
+  if (!Array.isArray(DB.ocorrencias)) DB.ocorrencias = [];
+  if (editingOcorrenciaId) {
+    const idx = DB.ocorrencias.findIndex(x => x.id === editingOcorrenciaId);
+    if (idx >= 0) DB.ocorrencias[idx] = { ...DB.ocorrencias[idx], ...data };
+    data.id = editingOcorrenciaId;
+  } else {
+    data.id = uid();
+    DB.ocorrencias.push(data);
+  }
+  syncOcorrenciaComPessoas(data);
+  selOcorrencia = data.id;
+  saveDB();
+  closeOv('ov-ocorrencia');
+  renderAll();
+  renderOcorrenciaDetail();
+  renderPessoaDetail();
+  toast(data.lat && data.lng ? 'Ocorrencia salva e enviada ao mapa.' : 'Ocorrencia salva. Sem coordenadas, ela nao aparece no mapa.');
+}
+
+function deleteOcorrencia(id) {
+  if (!confirm('Excluir esta ocorrencia?')) return;
+  DB.ocorrencias = (DB.ocorrencias || []).filter(oc => oc.id !== id);
+  DB.pessoas.forEach(p => {
+    if (Array.isArray(p.eventos)) p.eventos = p.eventos.filter(ev => ev.ocorrenciaId !== id);
+  });
+  selOcorrencia = null;
+  saveDB();
+  renderAll();
+  renderOcorrenciaDetail();
+  toast('Ocorrencia excluida.');
+}
+
 function openModal_vinculo(pessoaId) {
   vinculoTargetId = pessoaId;
   const sel = document.getElementById('vk-pessoa');
@@ -805,6 +1011,7 @@ function renderMapMarkers() {
     }
     // eventos
     (p.eventos || []).forEach(ev => {
+      if (ev.ocorrenciaId) return;
       if (!ev.lat || !ev.lng) return;
       if (!inDateRange(ev.data)) return;
       const style = getEventoMapStyle(ev);
@@ -816,6 +1023,20 @@ function renderMapMarkers() {
         .on('click', () => { goPage('pessoas'); selectPessoa(p.id); setDTab('timeline'); })
         .addTo(mapMarkers);
     });
+  });
+
+  (DB.ocorrencias || []).forEach(oc => {
+    if (!oc.lat || !oc.lng) return;
+    if (!inDateRange(oc.data)) return;
+    const style = getEventoMapStyle(oc);
+    if (!mapFilters[style.key]) return;
+    const color = style.color;
+    const pessoas = getOcorrenciaPessoas(oc);
+    const icon = window.L.divIcon({ className:'', html:`<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.55);box-shadow:0 0 7px ${color}80"></div>`, iconSize:[12,12], iconAnchor:[6,6] });
+    window.L.marker([oc.lat, oc.lng], { icon })
+      .bindTooltip(`<b>${tipoLabel(oc.tipo || 'ocorrencia')}</b><br>${style.label} · ${fmtDate(oc.data)}<br>${pessoas.length ? pessoas.map(p => p.nome).join(', ') : 'Sem pessoa vinculada'}<br>📍 ${oc.local}`, { direction:'top' })
+      .on('click', () => { goPage('ocorrencias'); selectOcorrencia(oc.id); })
+      .addTo(mapMarkers);
   });
 
   // locais de interesse
@@ -1246,6 +1467,7 @@ async function loadCloudFileData() {
     selPessoa = selVeiculo = selLocal = null;
     renderAll();
     renderPessoaDetail();
+    renderOcorrenciaDetail();
     renderVeiculoDetail();
     renderLocalDetail();
     toast('Dados carregados da nuvem.');
@@ -1310,10 +1532,10 @@ function doImport() {
     const parsed = JSON.parse(document.getElementById('import-json').value.trim());
     if (!parsed.pessoas) throw new Error('Formato inválido');
     if (!confirm(`Importar ${parsed.pessoas.length} pessoas, ${(parsed.veiculos||[]).length} veículos e ${(parsed.locais||[]).length} locais?\nOs dados atuais serão substituídos.`)) return;
-    DB = { pessoas: parsed.pessoas||[], veiculos: parsed.veiculos||[], locais: parsed.locais||[] };
+    DB = normalizeDB({ pessoas: parsed.pessoas||[], veiculos: parsed.veiculos||[], locais: parsed.locais||[], ocorrencias: parsed.ocorrencias||[], links: parsed.links||[] });
     saveDB();
     closeOv('ov-import');
-    selPessoa = selVeiculo = selLocal = null;
+    selPessoa = selVeiculo = selLocal = selOcorrencia = null;
     renderAll();
     toast('Dados importados com sucesso.');
   } catch(e) {
@@ -1380,9 +1602,11 @@ function toast(msg, err = false) {
 ══════════════════════════════════════════════════════════════ */
 function renderAll() {
   renderPessoasList();
+  renderOcorrenciasList();
   renderVeiculosList();
   renderLocaisList();
   document.getElementById('cnt-pessoas').textContent = DB.pessoas.length;
+  document.getElementById('cnt-ocorrencias').textContent = (DB.ocorrencias || []).length;
   document.getElementById('cnt-veiculos').textContent = DB.veiculos.length;
   document.getElementById('cnt-locais').textContent = DB.locais.length;
   if (mapMarkers) renderMapMarkers();
