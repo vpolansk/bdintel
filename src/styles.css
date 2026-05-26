@@ -1060,8 +1060,12 @@ header {
 
 @media (max-width: 720px) {
   body {
-    height: 100dvh;
-    overflow: hidden;
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    display: block;
+    -webkit-overflow-scrolling: touch;
   }
 
   header {
@@ -1127,10 +1131,9 @@ header {
   }
 
   .app-body {
-    min-height: 0;
-    flex: 1 1 auto;
-    overflow: hidden;
-    overflow-x: hidden;
+    display: block;
+    min-height: calc(100dvh - 132px);
+    overflow: visible;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
@@ -1138,9 +1141,9 @@ header {
   .page.active {
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
+    min-height: calc(100dvh - 132px);
+    height: auto;
+    overflow: visible;
   }
 
   .list-panel {
@@ -1155,17 +1158,17 @@ header {
   }
 
   #page-pessoas:not(.mobile-detail-open) .list-panel {
-    flex: 1;
-    min-height: 0;
-    height: 100%;
+    flex: 0 0 auto;
+    min-height: auto;
+    height: auto;
     max-height: none;
+    overflow: visible;
   }
 
   #page-pessoas:not(.mobile-detail-open) .scroll-list {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    flex: 0 0 auto;
+    min-height: auto;
+    overflow: visible;
   }
 
   #page-pessoas.mobile-detail-open .list-panel {
@@ -1174,15 +1177,15 @@ header {
 
   #page-pessoas.mobile-detail-open {
     display: block;
-    overflow: auto;
+    overflow: visible;
     -webkit-overflow-scrolling: touch;
   }
 
   #page-pessoas.mobile-detail-open .detail-panel {
     display: block;
-    width: max-content;
-    min-width: 760px;
-    min-height: 100%;
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
     height: auto;
     overflow: visible;
   }
@@ -1232,8 +1235,8 @@ header {
   }
 
   .detail-panel {
-    min-height: 0;
-    overflow: hidden;
+    min-height: auto;
+    overflow: visible;
     scroll-margin-top: 8px;
   }
 
@@ -1271,24 +1274,23 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-mobile-nav {
-    width: 100vw;
-    position: sticky;
-    left: 0;
+    width: 100%;
+    position: static;
     z-index: 4;
   }
 
   #page-pessoas.mobile-detail-open .detail-head {
-    flex-direction: row;
+    flex-direction: column;
     align-items: flex-start;
   }
 
   #page-pessoas.mobile-detail-open .detail-head-actions {
-    width: auto;
-    flex-wrap: nowrap;
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   #page-pessoas.mobile-detail-open .detail-head-actions .btn {
-    flex: 0 0 auto;
+    flex: 1 1 auto;
   }
 
   #page-pessoas.mobile-detail-open .info-grid {
@@ -1412,5 +1414,49 @@ header {
     white-space: normal;
     text-align: center;
     bottom: 12px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  body {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+    display: block;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  header {
+    position: relative;
+    min-height: 0;
+    padding: 6px 10px;
+  }
+
+  .app-body,
+  .page.active,
+  .list-panel,
+  .detail-panel,
+  .scroll-list,
+  .detail-body {
+    height: auto;
+    min-height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .page.active {
+    display: flex;
+  }
+
+  #page-pessoas:not(.mobile-detail-open) {
+    flex-direction: row;
+  }
+
+  #page-pessoas:not(.mobile-detail-open) .list-panel {
+    width: 100%;
+  }
+
+  #page-pessoas.mobile-detail-open {
+    display: block;
   }
 }
