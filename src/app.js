@@ -449,8 +449,9 @@ async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId,
     if (cidadeId && cidade) document.getElementById(cidadeId).value = cidade;
     if (estadoId && estado) document.getElementById(estadoId).value = estado;
 
-    if (found.display_name && addressEl && confirm('Usar o endereco encontrado no campo?')) {
-      addressEl.value = found.display_name;
+    const enderecoFinal = montarEnderecoComNumero(query, found);
+    if (enderecoFinal && addressEl && confirm('Usar o endereco encontrado no campo?')) {
+      addressEl.value = enderecoFinal;
     }
     if (typeof afterFound === 'function') afterFound({ lat, lng, found });
     toast('Endereco localizado e coordenadas preenchidas.');
@@ -459,6 +460,32 @@ async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId,
     toast('Nao foi possivel buscar o endereco agora.', true);
     return null;
   }
+}
+
+function extrairNumeroEndereco(texto) {
+  const limpo = (texto || '').trim();
+  const padroes = [
+    /\b(?:n(?:\.|º|o|umero)?\s*)?(\d{1,6}[A-Za-z]?)\b/,
+    /,\s*(\d{1,6}[A-Za-z]?)\b/,
+  ];
+  for (const p of padroes) {
+    const match = limpo.match(p);
+    if (match) return match[1];
+  }
+  return '';
+}
+
+function montarEnderecoComNumero(original, found) {
+  const display = found.display_name || original;
+  const addr = found.address || {};
+  const numeroOriginal = extrairNumeroEndereco(original);
+  if (!numeroOriginal || addr.house_number || display.includes(numeroOriginal)) return display;
+
+  const rua = addr.road || addr.pedestrian || addr.path || addr.residential || '';
+  if (rua && display.toLowerCase().includes(rua.toLowerCase())) {
+    return display.replace(rua, `${rua}, ${numeroOriginal}`);
+  }
+  return `${numeroOriginal}, ${display}`;
 }
 
 function getGPS(latId, lngId, btnId, addressId) {
