@@ -12,6 +12,7 @@ let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true
 ══════════════════════════════════════════════════════════════ */
 function goPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('mobile-detail-open'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   document.getElementById('ntab-' + id).classList.add('active');
@@ -79,9 +80,18 @@ let dTab = 'dados';
 function selectPessoa(id) {
   selPessoa = id;
   dTab = 'dados';
+  if (isMobileLayout()) document.getElementById('page-pessoas').classList.add('mobile-detail-open');
   renderPessoasList();
   renderPessoaDetail();
   scrollDetailIntoView('pessoa-detail');
+}
+
+function voltarListaPessoas() {
+  document.getElementById('page-pessoas').classList.remove('mobile-detail-open');
+  requestAnimationFrame(() => {
+    const list = document.getElementById('pessoas-list');
+    if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 }
 
 function getPessoaNome(id) {
@@ -154,6 +164,9 @@ function renderPessoaDetail() {
     : '👤';
 
   el.innerHTML = `
+      <div class="detail-mobile-nav">
+        <button class="btn mobile-back" onclick="voltarListaPessoas()">VOLTAR A LISTA</button>
+      </div>
       <div class="detail-head">
       <div class="avatar lg" style="${p.foto?'cursor:zoom-in':''}" ${p.foto?`onclick="openPhotoViewer('${p.id}','pessoa')"`:''}>${foto}</div>
       <div class="detail-head-info">

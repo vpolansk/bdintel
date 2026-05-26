@@ -401,6 +401,9 @@ header {
   align-items: center;
   justify-content: center;
 }
+.mobile-back {
+  display: none;
+}
 .blank-msg {
   color: var(--text3);
   font-family: var(--font-mono);
@@ -1143,6 +1146,22 @@ header {
     flex-shrink: 0;
   }
 
+  #page-pessoas.mobile-detail-open .list-panel {
+    display: none;
+  }
+
+  #page-pessoas.mobile-detail-open .detail-panel {
+    min-height: calc(100dvh - 112px);
+  }
+
+  .mobile-back {
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    min-height: 38px;
+    margin-bottom: 8px;
+  }
+
   .panel-header {
     padding: 10px;
   }
@@ -1172,6 +1191,12 @@ header {
     min-height: 70dvh;
     overflow: visible;
     scroll-margin-top: 8px;
+  }
+
+  .detail-mobile-nav {
+    padding: 10px 10px 0;
+    background: var(--bg2);
+    flex-shrink: 0;
   }
 
   .detail-head {
