@@ -262,7 +262,12 @@
         </select>
       </div>
     </div>
-    <div class="fg"><label class="fl">Endereço Informado</label><input class="fi" id="mp-end" placeholder="Rua, número — bairro, cidade"></div>
+    <div class="fg"><label class="fl">Endereço Informado</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="fi" id="mp-end" placeholder="Rua, número — bairro, cidade" style="flex:1">
+        <button class="btn sm" type="button" onclick="buscarEnderecoCampos('mp-end','mp-lat','mp-lng','mp-bairro','mp-cidade','mp-estado')">BUSCAR ENDERECO</button>
+      </div>
+    </div>
     <div class="frow c3">
       <div class="fg"><label class="fl">Bairro</label><input class="fi" id="mp-bairro" placeholder="Bairro"></div>
       <div class="fg"><label class="fl">Cidade</label><input class="fi" id="mp-cidade" placeholder="Cidade"></div>
@@ -313,7 +318,12 @@
       <div class="fg"><label class="fl">Data *</label><input class="fi" id="ev-data" type="date"></div>
       <div class="fg"><label class="fl">Hora</label><input class="fi" id="ev-hora" type="time" placeholder="17:30"></div>
     </div>
-    <div class="fg"><label class="fl">Local *</label><input class="fi" id="ev-local" placeholder="Av. X, n.º 000 — Bairro Y, Cidade Z"></div>
+    <div class="fg"><label class="fl">Local *</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="fi" id="ev-local" placeholder="Av. X, n.º 000 — Bairro Y, Cidade Z" style="flex:1">
+        <button class="btn sm" type="button" onclick="buscarEnderecoCampos('ev-local','ev-lat','ev-lng')">BUSCAR ENDERECO</button>
+      </div>
+    </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">Latitude</label><input class="fi" id="ev-lat" placeholder="-29.7600"></div>
       <div class="fg"><label class="fl">Longitude</label><input class="fi" id="ev-lng" placeholder="-51.1500"></div>
@@ -601,7 +611,12 @@
         </select>
       </div>
     </div>
-    <div class="fg"><label class="fl">Endereço / Referência</label><input class="fi" id="ml-end" placeholder="Rua, bairro, ponto de referência…"></div>
+    <div class="fg"><label class="fl">Endereço / Referência</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="fi" id="ml-end" placeholder="Rua, bairro, ponto de referência…" style="flex:1">
+        <button class="btn sm" type="button" onclick="buscarEnderecoCampos('ml-end','ml-lat','ml-lng')">BUSCAR ENDERECO</button>
+      </div>
+    </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">Latitude</label><input class="fi" id="ml-lat" placeholder="-29.7600"></div>
       <div class="fg"><label class="fl">Longitude</label><input class="fi" id="ml-lng" placeholder="-51.1500"></div>

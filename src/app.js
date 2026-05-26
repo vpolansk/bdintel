@@ -419,6 +419,48 @@ function previewVeiculoFotoFile(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
+async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId, estadoId, afterFound) {
+  const addressEl = document.getElementById(addressId);
+  const query = addressEl ? addressEl.value.trim() : '';
+  if (!query) { toast('Digite o endereco ou referencia para buscar.', true); return null; }
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&accept-language=pt-BR&q=${encodeURIComponent(query)}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' } });
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) {
+      toast('Endereco nao encontrado. Tente incluir bairro e cidade.', true);
+      return null;
+    }
+    const found = data[0];
+    const lat = parseFloat(found.lat);
+    const lng = parseFloat(found.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      toast('Endereco encontrado, mas sem coordenadas validas.', true);
+      return null;
+    }
+    document.getElementById(latId).value = lat.toFixed(6);
+    document.getElementById(lngId).value = lng.toFixed(6);
+
+    const addr = found.address || {};
+    const bairro = addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || '';
+    const cidade = addr.city || addr.town || addr.village || addr.municipality || '';
+    const estado = addr.state || '';
+    if (bairroId && bairro) document.getElementById(bairroId).value = bairro;
+    if (cidadeId && cidade) document.getElementById(cidadeId).value = cidade;
+    if (estadoId && estado) document.getElementById(estadoId).value = estado;
+
+    if (found.display_name && addressEl && confirm('Usar o endereco encontrado no campo?')) {
+      addressEl.value = found.display_name;
+    }
+    if (typeof afterFound === 'function') afterFound({ lat, lng, found });
+    toast('Endereco localizado e coordenadas preenchidas.');
+    return { lat, lng, found };
+  } catch(e) {
+    toast('Nao foi possivel buscar o endereco agora.', true);
+    return null;
+  }
+}
+
 function getGPS(latId, lngId, btnId, addressId) {
   if (!navigator.geolocation) { toast('GPS não disponível neste dispositivo.', true); return; }
   const btn = document.getElementById(btnId);
@@ -852,28 +894,11 @@ function centralizarMapaOcorrencia() {
 }
 
 async function buscarOcorrenciaNoMapa() {
-  const local = document.getElementById('oc-local').value.trim();
-  if (!local) { toast('Digite o endereco ou referencia para buscar.', true); return; }
-  try {
-    if (!ocorrenciaPickerMap) initOcorrenciaMapPicker();
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=pt-BR&q=${encodeURIComponent(local)}`;
-    const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' } });
-    const data = await res.json();
-    if (!Array.isArray(data) || !data.length) {
-      toast('Endereco nao encontrado. Tente bairro, cidade ou ponto de referencia.', true);
-      return;
-    }
-    const found = data[0];
-    const lat = parseFloat(found.lat);
-    const lng = parseFloat(found.lon);
+  if (!ocorrenciaPickerMap) initOcorrenciaMapPicker();
+  const result = await buscarEnderecoCampos('oc-local', 'oc-lat', 'oc-lng', null, null, null, ({ lat, lng }) => {
     setOcorrenciaCoords(lat, lng, true);
-    if (found.display_name && confirm('Usar o endereco encontrado no campo de local?')) {
-      document.getElementById('oc-local').value = found.display_name;
-    }
-    toast('Ponto localizado. Arraste para ajustar se precisar.');
-  } catch(e) {
-    toast('Nao foi possivel buscar no mapa agora.', true);
-  }
+  });
+  if (result) toast('Ponto localizado. Arraste para ajustar se precisar.');
 }
 
 function openModal_ocorrencia(id) {
