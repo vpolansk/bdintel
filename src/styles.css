@@ -1066,11 +1066,12 @@ header {
 
   header {
     height: auto;
-    min-height: 112px;
-    padding: 10px;
+    min-height: 0;
+    padding: 8px 10px;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   header > div:first-child {
@@ -1100,9 +1101,9 @@ header {
   }
 
   .nav-tab {
-    min-height: 38px;
-    padding: 7px 10px;
-    font-size: 11px;
+    min-height: 32px;
+    padding: 5px 9px;
+    font-size: 10px;
     letter-spacing: 1px;
     flex: 0 0 auto;
   }
@@ -1116,8 +1117,8 @@ header {
   }
 
   .header-right .btn {
-    min-height: 34px;
-    padding: 5px 9px;
+    min-height: 30px;
+    padding: 4px 8px;
     font-size: 10px;
   }
 
@@ -1127,7 +1128,8 @@ header {
 
   .app-body {
     min-height: 0;
-    overflow-y: auto;
+    flex: 1 1 auto;
+    overflow: hidden;
     overflow-x: hidden;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -1138,6 +1140,7 @@ header {
     flex-direction: column;
     min-height: 0;
     height: 100%;
+    overflow: hidden;
   }
 
   .list-panel {
@@ -1154,11 +1157,15 @@ header {
   #page-pessoas:not(.mobile-detail-open) .list-panel {
     flex: 1;
     min-height: 0;
+    height: 100%;
     max-height: none;
   }
 
   #page-pessoas:not(.mobile-detail-open) .scroll-list {
+    flex: 1;
     min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   #page-pessoas.mobile-detail-open .list-panel {
@@ -1178,7 +1185,17 @@ header {
   }
 
   .panel-header {
-    padding: 10px;
+    padding: 8px 10px;
+  }
+
+  .panel-title {
+    margin-bottom: 6px;
+  }
+
+  .filter-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
   }
 
   .search-wrap input,
@@ -1190,9 +1207,10 @@ header {
 
   .chip,
   .map-chip {
-    min-height: 30px;
+    min-height: 28px;
     display: inline-flex;
     align-items: center;
+    flex: 0 0 auto;
   }
 
   .person-card,
