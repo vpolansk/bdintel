@@ -201,6 +201,7 @@ function renderDTab() {
 
   if (dTab === 'dados') {
     const age = fmtAge(p.nascimento);
+    const numeroEndereco = p.numero || extrairNumeroEndereco(p.endereco || '');
     el.innerHTML = `
       <div class="info-section">
         <div class="section-label">Identificação</div>
@@ -219,6 +220,7 @@ function renderDTab() {
           <div class="info-item"><div class="ilab">Endereço Informado</div><div class="ival ${!p.endereco?'empty':''}">${p.endereco||'—'}</div></div>
         </div>
         <div class="info-grid" style="margin-top:8px">
+          <div class="info-item"><div class="ilab">Número</div><div class="ival ${!numeroEndereco?'empty':''}">${numeroEndereco||'—'}</div></div>
           <div class="info-item"><div class="ilab">Bairro</div><div class="ival ${!p.bairro?'empty':''}">${p.bairro||'—'}</div></div>
           <div class="info-item"><div class="ilab">Cidade</div><div class="ival ${!p.cidade?'empty':''}">${p.cidade||'—'}</div></div>
           <div class="info-item"><div class="ilab">Estado</div><div class="ival ${!p.estado?'empty':''}">${p.estado||'—'}</div></div>
@@ -350,7 +352,7 @@ function openModal_pessoa(id) {
   editingPessoaId = id;
   const isNew = !id;
   document.getElementById('m-pessoa-title').textContent = isNew ? 'CADASTRAR PESSOA' : 'EDITAR CADASTRO';
-  const fields = ['nome','alcunha','nasc','rg','cpf','mae','status','end','bairro','cidade','estado','lat','lng','foto','caract','vinculos','obs'];
+  const fields = ['nome','alcunha','nasc','rg','cpf','mae','status','end','numero','bairro','cidade','estado','lat','lng','foto','caract','vinculos','obs'];
   fields.forEach(f => {
     const el = document.getElementById('mp-' + f);
     if (el) el.value = '';
@@ -370,6 +372,7 @@ function openModal_pessoa(id) {
     const statuses = Array.isArray(p.status) ? p.status[0] : p.status;
     document.getElementById('mp-status').value = statuses || 'cadastrado';
     document.getElementById('mp-end').value = p.endereco || '';
+    document.getElementById('mp-numero').value = p.numero || extrairNumeroEndereco(p.endereco || '');
     document.getElementById('mp-bairro').value = p.bairro || '';
     document.getElementById('mp-cidade').value = p.cidade || '';
     document.getElementById('mp-estado').value = p.estado || '';
@@ -432,7 +435,11 @@ function previewVeiculoFotoFile(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
-async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId, estadoId, afterFound) {
+async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId, estadoId, numeroId, afterFound) {
+  if (typeof numeroId === 'function') {
+    afterFound = numeroId;
+    numeroId = null;
+  }
   const addressEl = document.getElementById(addressId);
   const query = addressEl ? addressEl.value.trim() : '';
   if (!query) { toast('Digite o endereco ou referencia para buscar.', true); return null; }
@@ -463,6 +470,8 @@ async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId,
     if (estadoId && estado) document.getElementById(estadoId).value = estado;
 
     const enderecoFinal = montarEnderecoComNumero(query, found);
+    const numero = (addr.house_number || extrairNumeroEndereco(query) || extrairNumeroEndereco(enderecoFinal)).trim();
+    if (numeroId && numero) document.getElementById(numeroId).value = numero;
     if (enderecoFinal && addressEl && confirm('Usar o endereco encontrado no campo?')) {
       addressEl.value = enderecoFinal;
     }
@@ -590,6 +599,7 @@ function savePessoa() {
     mae: document.getElementById('mp-mae').value.trim(),
     status: document.getElementById('mp-status').value,
     endereco: document.getElementById('mp-end').value.trim(),
+    numero: document.getElementById('mp-numero').value.trim(),
     bairro: document.getElementById('mp-bairro').value.trim(),
     cidade: document.getElementById('mp-cidade').value.trim(),
     estado: document.getElementById('mp-estado').value.trim(),

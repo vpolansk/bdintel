@@ -969,6 +969,7 @@ header {
 .frow { display: grid; gap: 10px; }
 .frow.c2 { grid-template-columns: 1fr 1fr; }
 .frow.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.frow.c4 { grid-template-columns: .7fr 1.1fr 1.1fr .7fr; }
 .fhint { font-size: 11px; color: var(--text3); margin-top: 4px; font-style: italic; }
 
 /* foto preview */
@@ -1125,6 +1126,7 @@ header {
   }
 
   .app-body {
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -1134,16 +1136,29 @@ header {
   .page.active {
     display: flex;
     flex-direction: column;
-    min-height: calc(100dvh - 112px);
-    height: auto;
+    min-height: 0;
+    height: 100%;
   }
 
   .list-panel {
     width: 100%;
-    max-height: 38dvh;
     border-right: none;
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+  }
+
+  #page-pessoas:not(.mobile-detail-open) .detail-panel {
+    display: none;
+  }
+
+  #page-pessoas:not(.mobile-detail-open) .list-panel {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+  }
+
+  #page-pessoas:not(.mobile-detail-open) .scroll-list {
+    min-height: 0;
   }
 
   #page-pessoas.mobile-detail-open .list-panel {
@@ -1308,7 +1323,8 @@ header {
 
   .frow,
   .frow.c2,
-  .frow.c3 {
+  .frow.c3,
+  .frow.c4 {
     grid-template-columns: 1fr;
   }
 
