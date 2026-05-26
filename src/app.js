@@ -743,6 +743,29 @@ function saveEvento() {
 
   const p = DB.pessoas.find(x => x.id === eventoTargetId);
   if (!p) return;
+  if (!Array.isArray(DB.ocorrencias)) DB.ocorrencias = [];
+  const ocorrencia = {
+    id: uid(),
+    tipo: ev.tipo,
+    gravidade: ev.gravidade || getEventoGravidade(ev) || 'media',
+    data: ev.data,
+    hora: ev.hora,
+    local: ev.local,
+    lat: ev.lat,
+    lng: ev.lng,
+    ba: ev.ba,
+    veiculos: ev.veiculoPlaca,
+    pessoasIds: [p.id],
+    historico: ev.historico,
+    motivo: ev.motivo,
+    resultado: ev.resultado,
+    viatura: ev.viatura,
+    objetos: ev.objetos,
+    tipif: ev.tipif,
+    origem: 'linha_do_tempo',
+  };
+  DB.ocorrencias.push(ocorrencia);
+  ev.ocorrenciaId = ocorrencia.id;
   if (!p.eventos) p.eventos = [];
   p.eventos.push(ev);
 
@@ -777,6 +800,7 @@ function saveEvento() {
   saveDB();
   closeOv('ov-evento');
   renderPessoasList();
+  renderOcorrenciasList();
   renderPessoaDetail();
   renderMapMarkers();
   toast('Ocorrência registrada.');
@@ -786,9 +810,18 @@ function deleteEvento(pessoaId, idx) {
   if (!confirm('Excluir este registro?')) return;
   const p = DB.pessoas.find(x => x.id === pessoaId);
   if (!p) return;
-  p.eventos.splice(idx, 1);
+  const removidos = p.eventos.splice(idx, 1);
+  const ev = removidos[0];
+  if (ev && ev.ocorrenciaId) {
+    const oc = (DB.ocorrencias || []).find(x => x.id === ev.ocorrenciaId);
+    if (oc && Array.isArray(oc.pessoasIds)) {
+      oc.pessoasIds = oc.pessoasIds.filter(id => id !== pessoaId);
+    }
+  }
   saveDB();
   renderPessoaDetail();
+  renderOcorrenciasList();
+  renderOcorrenciaDetail();
   renderMapMarkers();
   toast('Registro excluído.');
 }
