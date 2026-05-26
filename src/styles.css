@@ -1173,7 +1173,11 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-panel {
-    min-height: calc(100dvh - 112px);
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mobile-back {
@@ -1221,8 +1225,8 @@ header {
   }
 
   .detail-panel {
-    min-height: 70dvh;
-    overflow: visible;
+    min-height: 0;
+    overflow: hidden;
     scroll-margin-top: 8px;
   }
 
@@ -1253,7 +1257,9 @@ header {
   }
 
   .detail-body {
-    overflow: visible;
+    overflow-y: auto;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
     padding: 12px;
   }
 
