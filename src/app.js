@@ -4,6 +4,7 @@ let editingPessoaId = null, editingVeiculoId = null, editingLocalId = null, edit
 let eventoTargetId = null;
 let confirmacaoTargetId = null;
 let vinculoTargetId = null;
+let andamentoOcorrenciaTargetId = null;
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
 let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, residencia: true, local_poi: true };
@@ -757,6 +758,7 @@ function saveEvento() {
     veiculos: ev.veiculoPlaca,
     pessoasIds: [p.id],
     historico: ev.historico,
+    andamentos: [],
     motivo: ev.motivo,
     resultado: ev.resultado,
     viatura: ev.viatura,
@@ -842,7 +844,8 @@ function renderOcorrenciasList() {
   const list = (DB.ocorrencias || []).filter(oc => {
     if (!q) return true;
     const nomes = getOcorrenciaPessoas(oc).map(p => p.nome).join(' ');
-    return [oc.local, oc.historico, oc.ba, oc.veiculos, nomes, tipoLabel(oc.tipo || 'ocorrencia')].join(' ').toLowerCase().includes(q);
+    const andamentos = (oc.andamentos || []).map(a => [a.tipo, a.referencia, a.texto].join(' ')).join(' ');
+    return [oc.local, oc.historico, oc.ba, oc.veiculos, nomes, andamentos, tipoLabel(oc.tipo || 'ocorrencia')].join(' ').toLowerCase().includes(q);
   }).sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')));
 
   const cnt = document.getElementById('cnt-ocorrencias');
@@ -887,6 +890,7 @@ function renderOcorrenciaDetail() {
         <div class="detail-meta">${oc.local || 'Sem local informado'}</div>
       </div>
       <div class="detail-head-actions">
+        <button class="btn sm primary" onclick="openModal_ocorrenciaAndamento('${oc.id}')">+ ANDAMENTO</button>
         <button class="btn sm" onclick="openModal_ocorrencia('${oc.id}')">EDITAR</button>
         <button class="btn sm danger" onclick="deleteOcorrencia('${oc.id}')">EXCLUIR</button>
       </div>
@@ -913,6 +917,52 @@ function renderOcorrenciaDetail() {
             <div class="pc-info"><div class="pc-name" style="font-size:13px">${p.nome}</div><div class="pc-sub">${p.bairro||p.cidade||'-'}</div></div>
           </div>`).join('') : '<div class="empty-state">// NENHUMA PESSOA VINCULADA</div>'}
       </div>
+      ${renderOcorrenciaAndamentosSection(oc)}
+    </div>
+  `;
+}
+
+function andamentoLabel(tipo) {
+  const map = {
+    diligencia: 'DILIGENCIA',
+    vitima: 'DADOS DA VITIMA',
+    objeto: 'OBJETO / MATERIAL',
+    imagem: 'IMAGEM / CAMERA',
+    veiculo: 'VEICULO SUSPEITO',
+    modo: 'MODO OPERANDI',
+    autoria: 'AUTORIA',
+    informacao: 'INFORMACAO',
+  };
+  return map[tipo] || (tipo || 'ANDAMENTO').toUpperCase();
+}
+
+function renderOcorrenciaAndamentosSection(oc) {
+  const andamentos = (oc.andamentos || []).slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')));
+  return `
+    <div class="info-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
+        <div class="section-label" style="margin-bottom:0;border:none">Andamentos / Investigacao (${andamentos.length})</div>
+        <button class="btn primary sm" onclick="openModal_ocorrenciaAndamento('${oc.id}')">+ ADICIONAR</button>
+      </div>
+      ${andamentos.length ? `
+        <div class="timeline-wrap">
+          <div class="tl-line"></div>
+          ${andamentos.map((a, idx) => `
+            <div class="tl-entry">
+              <div class="tl-node averiguacao"></div>
+              <div class="tl-header">
+                <div class="tl-type averiguacao">${andamentoLabel(a.tipo)}</div>
+                <div class="tl-dt">${fmtDate(a.data)}${a.hora ? ' - ' + a.hora : ''}</div>
+              </div>
+              <div class="tl-card">
+                ${a.referencia ? `<div class="tl-local">${a.referencia}</div>` : ''}
+                <div class="tl-desc">${a.texto || '-'}</div>
+                <div class="tl-actions">
+                  <button class="btn sm danger" onclick="deleteOcorrenciaAndamento('${oc.id}',${idx})">EXCLUIR</button>
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>` : '<div class="empty-state">// NENHUM ANDAMENTO REGISTRADO</div>'}
     </div>
   `;
 }
@@ -926,6 +976,50 @@ function fillOcorrenciaPessoasOptions(selectedIds = []) {
     .sort((a,b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
     .map(p => `<option value="${p.id}"${ids.has(p.id) ? ' selected' : ''}>${p.nome || 'Sem nome'}${p.alcunha ? ' - ' + p.alcunha : ''}</option>`)
     .join('');
+}
+
+function openModal_ocorrenciaAndamento(ocorrenciaId) {
+  andamentoOcorrenciaTargetId = ocorrenciaId;
+  document.getElementById('oa-tipo').value = 'diligencia';
+  document.getElementById('oa-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('oa-hora').value = new Date().toTimeString().slice(0,5);
+  document.getElementById('oa-ref').value = '';
+  document.getElementById('oa-texto').value = '';
+  openOv('ov-oc-andamento');
+}
+
+function saveOcorrenciaAndamento() {
+  const oc = (DB.ocorrencias || []).find(x => x.id === andamentoOcorrenciaTargetId);
+  if (!oc) return;
+  const texto = document.getElementById('oa-texto').value.trim();
+  if (!texto) { toast('Informe o relato do andamento.', true); return; }
+  if (!Array.isArray(oc.andamentos)) oc.andamentos = [];
+  oc.andamentos.push({
+    id: uid(),
+    tipo: document.getElementById('oa-tipo').value,
+    data: document.getElementById('oa-data').value,
+    hora: document.getElementById('oa-hora').value,
+    referencia: document.getElementById('oa-ref').value.trim(),
+    texto,
+  });
+  saveDB();
+  closeOv('ov-oc-andamento');
+  renderOcorrenciaDetail();
+  renderOcorrenciasList();
+  toast('Andamento adicionado.');
+}
+
+function deleteOcorrenciaAndamento(ocorrenciaId, idx) {
+  if (!confirm('Excluir este andamento?')) return;
+  const oc = (DB.ocorrencias || []).find(x => x.id === ocorrenciaId);
+  if (!oc || !Array.isArray(oc.andamentos)) return;
+  const ordered = oc.andamentos.slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')));
+  const item = ordered[idx];
+  oc.andamentos = oc.andamentos.filter(a => a.id !== item.id);
+  saveDB();
+  renderOcorrenciaDetail();
+  renderOcorrenciasList();
+  toast('Andamento excluido.');
 }
 
 function setOcorrenciaCoords(lat, lng, moveMap = true) {
@@ -1054,6 +1148,7 @@ function saveOcorrencia() {
     veiculos: document.getElementById('oc-veiculos').value.trim(),
     pessoasIds,
     historico,
+    andamentos: editingOcorrenciaId ? ((DB.ocorrencias.find(x => x.id === editingOcorrenciaId) || {}).andamentos || []) : [],
   };
   if (!Array.isArray(DB.ocorrencias)) DB.ocorrencias = [];
   if (editingOcorrenciaId) {
