@@ -478,13 +478,23 @@
       <div class="fg"><label class="fl">Data *</label><input class="fi" id="oc-data" type="date"></div>
       <div class="fg"><label class="fl">Hora</label><input class="fi" id="oc-hora" type="time"></div>
     </div>
-    <div class="fg"><label class="fl">Local / Referencia *</label><input class="fi" id="oc-local" placeholder="Rua, bairro, ponto de referencia"></div>
+    <div class="fg"><label class="fl">Local / Referencia *</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="fi" id="oc-local" placeholder="Rua, bairro, cidade ou ponto de referencia" style="flex:1">
+        <button class="btn sm" type="button" onclick="buscarOcorrenciaNoMapa()">BUSCAR NO MAPA</button>
+      </div>
+      <div class="fhint">Digite manualmente e busque no mapa; depois clique ou arraste o ponto para ajustar o local exato.</div>
+    </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">Latitude</label><input class="fi" id="oc-lat" placeholder="-29.7600"></div>
       <div class="fg"><label class="fl">Longitude</label><input class="fi" id="oc-lng" placeholder="-51.1500"></div>
     </div>
     <div class="fg" style="margin-top:-6px">
       <button class="btn sm" type="button" id="oc-gps-btn" onclick="getGPS('oc-lat','oc-lng','oc-gps-btn','oc-local')">USAR LOCALIZACAO ATUAL</button>
+      <button class="btn sm" type="button" onclick="centralizarMapaOcorrencia()">AJUSTAR NO MAPA</button>
+    </div>
+    <div class="fg">
+      <div id="oc-map-picker"></div>
     </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">N.º BA / BO / RP</label><input class="fi" id="oc-ba" placeholder="Ex: 2026/00012345"></div>

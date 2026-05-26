@@ -107,10 +107,14 @@ async function signOutCloud() {
 function flattenDB() {
   const rows = [];
   const updated_at = new Date().toISOString();
-  DB.pessoas.forEach(item => rows.push({ id: item.id || uid(), kind: 'pessoa', data: item, updated_at }));
-  DB.veiculos.forEach(item => rows.push({ id: item.id || uid(), kind: 'veiculo', data: item, updated_at }));
-  DB.locais.forEach(item => rows.push({ id: item.id || uid(), kind: 'local', data: item, updated_at }));
-  DB.ocorrencias.forEach(item => rows.push({ id: item.id || uid(), kind: 'ocorrencia', data: item, updated_at }));
+  const pushRow = (item, kind) => {
+    if (!item.id) item.id = uid();
+    rows.push({ id: item.id, kind, data: item, updated_at });
+  };
+  DB.pessoas.forEach(item => pushRow(item, 'pessoa'));
+  DB.veiculos.forEach(item => pushRow(item, 'veiculo'));
+  DB.locais.forEach(item => pushRow(item, 'local'));
+  DB.ocorrencias.forEach(item => pushRow(item, 'ocorrencia'));
   return rows;
 }
 
@@ -196,11 +200,12 @@ function queueCloudWrite() {
     cloudSaveChain = cloudSaveChain
       .catch(() => {})
       .then(saveCloudDBNow)
-      .catch(() => {
+      .catch((error) => {
+        console.error('Erro ao sincronizar Supabase:', error);
         setBackupStatus({
           connected: true,
           label: 'ERRO',
-          detail: 'Nao foi possivel sincronizar. Confira a internet e tente novamente.',
+          detail: `Erro ao sincronizar: ${error && error.message ? error.message : 'confira a internet e tente novamente.'}`,
         });
       });
   }, 500);

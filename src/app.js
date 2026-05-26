@@ -5,6 +5,7 @@ let eventoTargetId = null;
 let confirmacaoTargetId = null;
 let vinculoTargetId = null;
 let mapMain = null, mapMarkers = null;
+let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
 let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, residencia: true, local_poi: true };
 /* ══════════════════════════════════════════════════════════════
    NAV / PAGES
@@ -431,6 +432,7 @@ function getGPS(latId, lngId, btnId, addressId) {
       const lng = pos.coords.longitude;
       document.getElementById(latId).value = lat.toFixed(6);
       document.getElementById(lngId).value = lng.toFixed(6);
+      if (latId === 'oc-lat' && lngId === 'oc-lng') setOcorrenciaCoords(lat, lng, true);
 
       if (addressId) {
         // Geocodificação reversa via Nominatim (OpenStreetMap) — gratuito, sem chave
@@ -801,6 +803,79 @@ function fillOcorrenciaPessoasOptions(selectedIds = []) {
     .join('');
 }
 
+function setOcorrenciaCoords(lat, lng, moveMap = true) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  document.getElementById('oc-lat').value = lat.toFixed(6);
+  document.getElementById('oc-lng').value = lng.toFixed(6);
+  if (!ocorrenciaPickerMap || typeof window.L === 'undefined') return;
+  const pos = [lat, lng];
+  if (!ocorrenciaPickerMarker) {
+    ocorrenciaPickerMarker = window.L.marker(pos, { draggable: true }).addTo(ocorrenciaPickerMap);
+    ocorrenciaPickerMarker.on('dragend', () => {
+      const p = ocorrenciaPickerMarker.getLatLng();
+      setOcorrenciaCoords(p.lat, p.lng, false);
+    });
+  } else {
+    ocorrenciaPickerMarker.setLatLng(pos);
+  }
+  if (moveMap) ocorrenciaPickerMap.setView(pos, Math.max(ocorrenciaPickerMap.getZoom(), 16));
+}
+
+function initOcorrenciaMapPicker() {
+  if (typeof window.L === 'undefined') return;
+  const el = document.getElementById('oc-map-picker');
+  if (!el) return;
+  if (ocorrenciaPickerMap) {
+    ocorrenciaPickerMap.remove();
+    ocorrenciaPickerMap = null;
+    ocorrenciaPickerMarker = null;
+  }
+  const lat = parseFloat(document.getElementById('oc-lat').value);
+  const lng = parseFloat(document.getElementById('oc-lng').value);
+  const center = (!isNaN(lat) && !isNaN(lng)) ? [lat, lng] : [-29.76, -51.15];
+  ocorrenciaPickerMap = window.L.map('oc-map-picker', { zoomControl: true }).setView(center, (!isNaN(lat) && !isNaN(lng)) ? 16 : 13);
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(ocorrenciaPickerMap);
+  ocorrenciaPickerMap.on('click', e => setOcorrenciaCoords(e.latlng.lat, e.latlng.lng, false));
+  if (!isNaN(lat) && !isNaN(lng)) setOcorrenciaCoords(lat, lng, false);
+  setTimeout(() => ocorrenciaPickerMap && ocorrenciaPickerMap.invalidateSize(), 120);
+}
+
+function centralizarMapaOcorrencia() {
+  if (!ocorrenciaPickerMap) initOcorrenciaMapPicker();
+  const lat = parseFloat(document.getElementById('oc-lat').value);
+  const lng = parseFloat(document.getElementById('oc-lng').value);
+  if (!isNaN(lat) && !isNaN(lng)) {
+    setOcorrenciaCoords(lat, lng, true);
+  } else {
+    buscarOcorrenciaNoMapa();
+  }
+}
+
+async function buscarOcorrenciaNoMapa() {
+  const local = document.getElementById('oc-local').value.trim();
+  if (!local) { toast('Digite o endereco ou referencia para buscar.', true); return; }
+  try {
+    if (!ocorrenciaPickerMap) initOcorrenciaMapPicker();
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=pt-BR&q=${encodeURIComponent(local)}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' } });
+    const data = await res.json();
+    if (!Array.isArray(data) || !data.length) {
+      toast('Endereco nao encontrado. Tente bairro, cidade ou ponto de referencia.', true);
+      return;
+    }
+    const found = data[0];
+    const lat = parseFloat(found.lat);
+    const lng = parseFloat(found.lon);
+    setOcorrenciaCoords(lat, lng, true);
+    if (found.display_name && confirm('Usar o endereco encontrado no campo de local?')) {
+      document.getElementById('oc-local').value = found.display_name;
+    }
+    toast('Ponto localizado. Arraste para ajustar se precisar.');
+  } catch(e) {
+    toast('Nao foi possivel buscar no mapa agora.', true);
+  }
+}
+
 function openModal_ocorrencia(id) {
   editingOcorrenciaId = id;
   document.getElementById('m-ocorrencia-title').textContent = id ? 'EDITAR OCORRENCIA' : 'CADASTRAR OCORRENCIA';
@@ -826,6 +901,7 @@ function openModal_ocorrencia(id) {
     fillOcorrenciaPessoasOptions(oc.pessoasIds || []);
   }
   openOv('ov-ocorrencia');
+  setTimeout(initOcorrenciaMapPicker, 100);
 }
 
 function syncOcorrenciaComPessoas(oc) {
