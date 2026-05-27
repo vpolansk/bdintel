@@ -900,6 +900,11 @@ header {
    PAGE: LOCAIS
 ══════════════════════════════════════ */
 #page-locais { flex-direction: row; }
+#local-detail {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
 
 .local-card {
   display: flex;
@@ -1117,6 +1122,7 @@ header {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  max-height: none;
 }
 .local-media-thumb {
   display: flex;
@@ -1153,6 +1159,35 @@ header {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 1px;
+}
+.local-media-add {
+  min-height: 78px;
+  border: 1px dashed rgba(200,160,64,.55);
+  background: rgba(200,160,64,.06);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.local-media-add:hover {
+  background: rgba(200,160,64,.12);
+  border-color: var(--accent);
+}
+.local-informe-actions {
+  margin-bottom: 10px;
+}
+.local-informes-list {
+  display: grid;
+  gap: 8px;
+}
+.local-informe-card {
+  background: rgba(8,10,15,.45);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+}
+.local-informe-card .btn {
+  margin-top: 8px;
 }
 
 /* ══════════════════════════════════════

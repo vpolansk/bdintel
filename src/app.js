@@ -2154,7 +2154,8 @@ function renderLocaisList() {
   const q = document.getElementById('locais-search').value.toLowerCase().trim();
   let list = DB.locais.filter(l => {
     if (!q) return true;
-    return [l.nome, l.tipo, l.endereco].join(' ').toLowerCase().includes(q);
+    const informes = (l.informes || []).map(i => [i.tipo, i.texto].join(' ')).join(' ');
+    return [l.nome, l.tipo, l.endereco, l.obs, informes].join(' ').toLowerCase().includes(q);
   });
   document.getElementById('cnt-locais').textContent = DB.locais.length;
   const el = document.getElementById('locais-list');
@@ -2247,6 +2248,7 @@ function addLocalMidia(id) {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*,video/*,application/pdf';
+  input.multiple = true;
   input.onchange = () => handleLocalMidiaFile(id, input);
   input.click();
 }
@@ -2254,37 +2256,42 @@ function addLocalMidia(id) {
 async function handleLocalMidiaFile(id, input) {
   const l = DB.locais.find(x => x.id === id);
   if (!l) return;
-  const file = input.files && input.files[0];
-  if (!file) return;
-  let dataUrl = '';
-  let tipo = file.type || 'arquivo';
-  if (file.type.startsWith('image/')) {
-    dataUrl = await resizeImageFile(file, 1400, 0.84);
-    tipo = 'imagem';
-  } else {
-    dataUrl = await new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = e => resolve(e.target.result);
-      reader.onerror = () => resolve('');
-      reader.readAsDataURL(file);
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+  if (!Array.isArray(l.midias)) l.midias = [];
+  let adicionadas = 0;
+  for (const file of files) {
+    let dataUrl = '';
+    let tipo = file.type || 'arquivo';
+    if (file.type.startsWith('image/')) {
+      dataUrl = await resizeImageFile(file, 1400, 0.84);
+      tipo = 'imagem';
+    } else {
+      dataUrl = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(file);
+      });
+    }
+    if (!dataUrl) continue;
+    l.midias.push({
+      id: uid(),
+      url: dataUrl,
+      nome: file.name || 'midia',
+      tipo,
+      mime: file.type || '',
+      data: new Date().toISOString().slice(0,10),
     });
+    adicionadas++;
   }
-  if (!dataUrl) {
+  if (!adicionadas) {
     toast('Nao foi possivel carregar a midia.', true);
     return;
   }
-  if (!Array.isArray(l.midias)) l.midias = [];
-  l.midias.push({
-    id: uid(),
-    url: dataUrl,
-    nome: file.name || 'midia',
-    tipo,
-    mime: file.type || '',
-    data: new Date().toISOString().slice(0,10),
-  });
   saveDB();
   renderLocalDetail();
-  toast('Midia adicionada ao local.');
+  toast(adicionadas === 1 ? 'Midia adicionada ao local.' : adicionadas + ' midias adicionadas ao local.');
 }
 
 function abrirLocalMidia(localId, midiaId) {
@@ -2305,6 +2312,36 @@ function renderLocalMidiaThumb(l, m) {
   </button>`;
 }
 
+function addLocalInforme(id) {
+  const l = DB.locais.find(x => x.id === id);
+  if (!l) return;
+  const tipo = prompt('Tipo de informe: movimentacao, dono/gerente, produto, denuncia, abordagem, midia, outro', 'movimentacao');
+  if (tipo === null) return;
+  const texto = prompt('Informe objetivo para alimentar o dossie do local:');
+  if (!texto || !texto.trim()) return;
+  if (!Array.isArray(l.informes)) l.informes = [];
+  l.informes.push({
+    id: uid(),
+    tipo: tipo.trim() || 'informe',
+    texto: texto.trim(),
+    data: new Date().toISOString().slice(0,10),
+    hora: new Date().toTimeString().slice(0,5),
+  });
+  saveDB();
+  renderLocalDetail();
+  toast('Informe adicionado ao local.');
+}
+
+function deleteLocalInforme(localId, informeId) {
+  const l = DB.locais.find(x => x.id === localId);
+  if (!l || !Array.isArray(l.informes)) return;
+  if (!confirm('Excluir este informe do local?')) return;
+  l.informes = l.informes.filter(i => i.id !== informeId);
+  saveDB();
+  renderLocalDetail();
+  toast('Informe excluido.');
+}
+
 function renderLocalDetail() {
   const l = DB.locais.find(x => x.id === selLocal);
   const el = document.getElementById('local-detail');
@@ -2313,6 +2350,9 @@ function renderLocalDetail() {
   const risco = localRisco(l);
   const dossie = getLocalDossie(l);
   const midias = Array.isArray(l.midias) ? l.midias : [];
+  const informes = Array.isArray(l.informes)
+    ? l.informes.slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))
+    : [];
 
   el.innerHTML = `
     <div class="detail-mobile-nav">
@@ -2330,6 +2370,7 @@ function renderLocalDetail() {
         </div>
         <div class="local-actions">
           <span class="risk-badge ${risco.cls}">${risco.label}</span>
+          <button class="btn sm" onclick="addLocalInforme('${l.id}')">+ INFORME</button>
           <button class="btn sm primary" onclick="navegarLocal('${l.id}')">NAVEGAR</button>
           <button class="btn sm" onclick="addLocalMidia('${l.id}')">NOVA MIDIA</button>
           <button class="btn sm" onclick="openModal_local('${l.id}')">EDITAR</button>
@@ -2393,9 +2434,26 @@ function renderLocalDetail() {
 
       <section class="local-card-panel">
         <details class="local-fold" open>
+          <summary>Informes do local (${informes.length})</summary>
+          <div class="local-informe-actions">
+            <button class="btn sm primary" onclick="addLocalInforme('${l.id}')">+ ADICIONAR INFORME</button>
+          </div>
+          <div class="local-informes-list">
+            ${informes.length ? informes.map(info => `
+              <div class="local-informe-card">
+                <div class="tl-local">${(info.tipo || 'informe').toUpperCase()} - ${fmtDate(info.data)}${info.hora ? ' - ' + info.hora : ''}</div>
+                <div class="tl-desc">${info.texto || '-'}</div>
+                <button class="btn sm danger" onclick="deleteLocalInforme('${l.id}','${info.id}')">EXCLUIR</button>
+              </div>`).join('') : '<div class="empty-state">Nenhum informe registrado ainda</div>'}
+          </div>
+        </details>
+      </section>
+
+      <section class="local-card-panel">
+        <details class="local-fold" open>
           <summary>Midia (${midias.length})</summary>
           <div class="local-media-grid">
-            ${midias.length ? midias.map(m => renderLocalMidiaThumb(l, m)).join('') : `<div class="local-media-empty">SEM FOTO</div><button class="btn sm" onclick="addLocalMidia('${l.id}')">ADICIONAR MIDIA</button>`}
+            ${midias.length ? midias.map(m => renderLocalMidiaThumb(l, m)).join('') + `<button class="local-media-add" onclick="addLocalMidia('${l.id}')">+ ADICIONAR MAIS</button>` : `<div class="local-media-empty">SEM FOTO</div><button class="local-media-add" onclick="addLocalMidia('${l.id}')">ADICIONAR MIDIA</button>`}
           </div>
         </details>
       </section>
