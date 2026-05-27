@@ -43,4 +43,4 @@ function tipoClass(t) {
 }
 
 /* Local presentation constants */
-const localEmojis = { poi:'📌', recorrente:'🔁', trafico:'💊', fuga:'🏃', esconderijo:'🏚', reuniao:'👥' };
+const localEmojis = { poi:'POI', recorrente:'REC', trafico:'TRF', fuga:'FUG', esconderijo:'ESC', reuniao:'REU' };
