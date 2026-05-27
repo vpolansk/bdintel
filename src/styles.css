@@ -671,43 +671,107 @@ header {
 .map-toolbar {
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
-  padding: 8px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: 12px 18px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) minmax(220px, 1.1fr) minmax(220px, 1.3fr) minmax(180px, .8fr);
+  gap: 14px 18px;
   flex-shrink: 0;
-  flex-wrap: wrap;
+  align-items: start;
 }
-.map-filter-group {
+.map-filter-block {
+  min-width: 0;
+  padding-right: 16px;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+.map-filter-block:nth-of-type(5),
+.map-filter-block.period { border-right: 0; }
+.map-filter-block.period { grid-column: span 2; }
+.map-filter-row {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 7px;
   align-items: center;
 }
 .map-filter-label {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
   color: var(--text3);
   text-transform: uppercase;
-  margin-right: 4px;
+  margin-bottom: 7px;
 }
 .map-chip {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 1px;
-  padding: 3px 8px;
-  border: 1px solid var(--border2);
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 999px;
   color: var(--text3);
   cursor: pointer;
   transition: all .12s;
-  text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 7px;
+  background: rgba(255,255,255,.03);
+  white-space: nowrap;
 }
-.map-chip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.map-chip:hover, .map-chip.on { border-color: var(--border3); color: var(--text); }
-.map-chip.on { background: var(--bg4); }
+.map-chip .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: currentColor; }
+.map-chip:hover { border-color: rgba(255,255,255,.25); color: var(--text); }
+.map-chip.on { background: color-mix(in srgb, currentColor 12%, transparent); border-color: currentColor; }
+.map-chip:not(.on) { opacity: .58; }
+.c-roubo { color: var(--pin-roubo); }
+.c-furto { color: var(--pin-furto); }
+.c-prisao { color: var(--pin-preso); }
+.c-trafico { color: var(--pin-trafico); }
+.c-homicidio { color: var(--pin-homicidio); }
+.c-estupro { color: var(--pin-estupro); }
+.c-estelionato { color: var(--pin-estelionato); }
+.c-local { color: #92e020; }
+.c-veiculo { color: var(--pin-clone); }
+.c-residencia { color: var(--pin-res); }
+.c-locais { color: var(--pin-poi); }
+.c-abordagem { color: var(--pin-abord); }
+.c-averiguacao { color: var(--pin-averi); }
+.c-arrombamento { color: var(--pin-furto-arromb); }
+.c-receptacao { color: var(--pin-receptacao); }
+.c-arma { color: var(--pin-arma); }
+.c-mandado { color: var(--pin-mandado); }
+.c-clone { color: var(--pin-clone); }
+.c-baixa { color: var(--pin-baixa); }
+.c-media { color: var(--pin-media); }
+.c-alta { color: var(--pin-alta); }
+.map-period-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.map-period-row .fi {
+  width: 190px;
+  padding: 8px 10px;
+  font-size: 15px;
+}
+.map-filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  grid-column: span 2;
+}
+.map-active-count {
+  color: var(--text3);
+  font-size: 12px;
+}
+.map-active-count b {
+  color: var(--accent);
+}
+.map-mobile-filter-btn,
+.map-filter-backdrop,
+.map-sheet-handle,
+.map-apply-btn {
+  display: none;
+}
 #map-main { flex: 1; }
 
 #oc-map-picker {
@@ -1422,20 +1486,118 @@ header {
     white-space: nowrap;
   }
 
-  .map-toolbar {
-    align-items: flex-start;
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .map-filter-group {
-    width: 100%;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-
   #map-main {
-    min-height: calc(100dvh - 210px);
+    min-height: calc(100dvh - 128px);
+  }
+
+  .map-mobile-filter-btn {
+    display: inline-flex;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1001;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid rgba(200,160,64,.45);
+    border-radius: 6px;
+    background: rgba(8,10,15,.92);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+
+  .map-mobile-filter-btn span {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #16120a;
+    font-family: var(--font-body);
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .map-filter-backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1900;
+    background: rgba(0,0,0,.36);
+  }
+
+  .map-toolbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1901;
+    max-height: 78dvh;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 16px 18px;
+    border: 1px solid rgba(255,255,255,.15);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    transform: translateY(105%);
+    transition: transform .18s ease;
+  }
+
+  .map-toolbar.open {
+    transform: translateY(0);
+  }
+
+  .map-sheet-handle {
+    display: block;
+    width: 44px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.18);
+    margin: 0 auto 2px;
+  }
+
+  .map-filter-block,
+  .map-filter-block.period {
+    grid-column: auto;
+    border-right: 0;
+    padding-right: 0;
+  }
+
+  .map-filter-row {
+    gap: 8px;
+  }
+
+  .map-chip {
+    min-height: 36px;
+    min-width: 44px;
+    font-size: 13px;
+    padding: 7px 12px;
+  }
+
+  .map-period-row .fi {
+    width: min(42vw, 170px);
+  }
+
+  .map-filter-actions {
+    grid-column: auto;
+    justify-content: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .map-active-count {
+    grid-column: span 2;
+  }
+
+  .map-apply-btn {
+    display: inline-flex;
   }
 
   .map-legend-box {

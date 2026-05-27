@@ -1463,17 +1463,69 @@ function initMap() {
   window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapMain);
   window.L.control.zoom({ position: 'bottomleft' }).addTo(mapMain);
   mapMarkers = window.L.layerGroup().addTo(mapMain);
+  updateMapFilterUI();
+}
+
+const mapFilterGroups = {
+  'natureza-roubo': ['crime_roubo', 'crime_roubo_residencia', 'crime_roubo_comercio', 'crime_roubo_pedestre'],
+  'natureza-furto': ['crime_furto', 'crime_furto_qualificado', 'crime_furto_residencia', 'crime_furto_comercio', 'crime_furto_arrombamento'],
+  'local-residencia': ['crime_roubo_residencia', 'crime_furto_residencia'],
+  'local-comercio': ['crime_roubo_comercio', 'crime_furto_comercio'],
+  'local-veiculo': ['veic_roubo', 'veic_recuperado', 'veic_clone'],
+};
+
+function shouldDeferMapRender() {
+  return isMobileLayout() && document.getElementById('map-filter-panel')?.classList.contains('open');
+}
+
+function updateMapFilterUI() {
+  document.querySelectorAll('[data-mf]').forEach(el => {
+    el.classList.toggle('on', !!mapFilters[el.dataset.mf]);
+  });
+  document.querySelectorAll('[data-mfg]').forEach(el => {
+    const keys = mapFilterGroups[el.dataset.mfg] || [];
+    el.classList.toggle('on', keys.length > 0 && keys.every(key => !!mapFilters[key]));
+  });
+  const active = Array.from(document.querySelectorAll('#map-filter-panel .map-chip.on')).length;
+  const count = document.getElementById('mf-count');
+  const mobileCount = document.getElementById('mf-mobile-count');
+  if (count) count.textContent = active;
+  if (mobileCount) mobileCount.textContent = active;
 }
 
 function toggleMF(key) {
   mapFilters[key] = !mapFilters[key];
-  const el = document.querySelector(`[data-mf="${key}"]`);
-  if (el) el.classList.toggle('on', mapFilters[key]);
+  updateMapFilterUI();
+  if (!shouldDeferMapRender()) renderMapMarkers();
+}
+
+function toggleMFGroup(group) {
+  const keys = mapFilterGroups[group] || [];
+  const enabled = !keys.every(key => !!mapFilters[key]);
+  keys.forEach(key => { mapFilters[key] = enabled; });
+  updateMapFilterUI();
+  if (!shouldDeferMapRender()) renderMapMarkers();
+}
+
+function openMapFilters() {
+  document.getElementById('map-filter-panel')?.classList.add('open');
+  document.getElementById('map-filter-backdrop')?.classList.add('open');
+  updateMapFilterUI();
+}
+
+function closeMapFilters() {
+  document.getElementById('map-filter-panel')?.classList.remove('open');
+  document.getElementById('map-filter-backdrop')?.classList.remove('open');
+}
+
+function applyMapFilters() {
+  closeMapFilters();
   renderMapMarkers();
 }
 function clearMapDates() {
   document.getElementById('mf-from').value = '';
   document.getElementById('mf-to').value = '';
+  updateMapFilterUI();
   renderMapMarkers();
 }
 
@@ -2680,6 +2732,7 @@ function renderAll() {
   document.getElementById('cnt-ocorrencias').textContent = (DB.ocorrencias || []).length;
   document.getElementById('cnt-veiculos').textContent = DB.veiculos.length;
   document.getElementById('cnt-locais').textContent = DB.locais.length;
+  updateMapFilterUI();
   if (mapMarkers) renderMapMarkers();
 }
 

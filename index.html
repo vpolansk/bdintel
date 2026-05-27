@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -12,7 +12,7 @@
 </head>
 <body class="auth-locked">
 
-<!-- ══ HEADER ══ -->
+<!-- â•â• HEADER â•â• -->
 <header>
   <div>
     <div class="logo">BDIntel</div>
@@ -21,26 +21,26 @@
   <div class="vsep"></div>
   <nav class="nav-tabs">
     <div class="nav-tab active" onclick="goPage('pessoas')" id="ntab-pessoas">
-      👤 PESSOAS <span class="count" id="cnt-pessoas">0</span>
+      ðŸ‘¤ PESSOAS <span class="count" id="cnt-pessoas">0</span>
     </div>
     <div class="nav-tab" onclick="goPage('mapa')" id="ntab-mapa">
-      🗺 MAPA
+      ðŸ—º MAPA
     </div>
     <div class="nav-tab" onclick="goPage('ocorrencias')" id="ntab-ocorrencias">
       OCORRENCIAS <span class="count" id="cnt-ocorrencias">0</span>
     </div>
     <div class="nav-tab" onclick="goPage('veiculos')" id="ntab-veiculos">
-      🚗 VEÍCULOS <span class="count" id="cnt-veiculos">0</span>
+      ðŸš— VEÃCULOS <span class="count" id="cnt-veiculos">0</span>
     </div>
     <div class="nav-tab" onclick="goPage('locais')" id="ntab-locais">
-      📍 LOCAIS <span class="count" id="cnt-locais">0</span>
+      ðŸ“ LOCAIS <span class="count" id="cnt-locais">0</span>
     </div>
   </nav>
   <div class="header-right">
-    <button class="btn primary" onclick="openModal_pessoa(null)">＋ PESSOA</button>
-    <button class="btn" onclick="exportDB()">⬇</button>
-    <button class="btn" onclick="triggerImport()">⬆</button>
-    <button class="btn" onclick="openCloudModal()">☁</button>
+    <button class="btn primary" onclick="openModal_pessoa(null)">ï¼‹ PESSOA</button>
+    <button class="btn" onclick="exportDB()">â¬‡</button>
+    <button class="btn" onclick="triggerImport()">â¬†</button>
+    <button class="btn" onclick="openCloudModal()">â˜</button>
     <span class="sync-status" id="cloud-sync-status">LOCAL</span>
     <span class="sync-status" id="auth-user-status">OFFLINE</span>
     <button class="btn" onclick="handleAuthLogout()">SAIR</button>
@@ -73,17 +73,17 @@
 
 <div class="app-body">
 
-  <!-- ══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        PAGE: PESSOAS
-  ══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="page active" id="page-pessoas">
     <!-- list -->
     <div class="list-panel">
       <div class="panel-header">
-        <div class="panel-title">Indivíduos</div>
+        <div class="panel-title">IndivÃ­duos</div>
         <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input type="text" id="pessoas-search" placeholder="Nome, alcunha, CPF, RG, bairro…" oninput="renderPessoasList()">
+          <span class="search-icon">âŒ•</span>
+          <input type="text" id="pessoas-search" placeholder="Nome, alcunha, CPF, RG, bairroâ€¦" oninput="renderPessoasList()">
         </div>
         <div class="filter-chips">
           <span class="chip on-all" data-sf="all" onclick="setSF('all')">TODOS</span>
@@ -95,7 +95,7 @@
           <span class="chip" data-sf="foragido"   onclick="setSF('foragido')">FORAGIDO</span>
           <span class="chip" data-sf="conduzido"  onclick="setSF('conduzido')">CONDUZIDO</span>
           <span class="chip" data-sf="testemunha" onclick="setSF('testemunha')">TESTEMUNHA</span>
-          <span class="chip" data-sf="vitima"     onclick="setSF('vitima')">VÍTIMA</span>
+          <span class="chip" data-sf="vitima"     onclick="setSF('vitima')">VÃTIMA</span>
           <span class="chip" data-sf="averiguado" onclick="setSF('averiguado')">AVERIGUADO</span>
         </div>
       </div>
@@ -104,57 +104,79 @@
 
     <!-- detail -->
     <div class="detail-panel blank" id="pessoa-detail">
-      <div class="blank-msg">// SELECIONE UM INDIVÍDUO<br>para visualizar o perfil completo</div>
+      <div class="blank-msg">// SELECIONE UM INDIVÃDUO<br>para visualizar o perfil completo</div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        PAGE: MAPA
-  ══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="page" id="page-mapa" style="position:relative;flex-direction:column;">
-    <div class="map-toolbar">
-      <span class="map-filter-label">Filtrar:</span>
-      <div class="map-filter-group" id="map-filters">
-        <span class="map-chip on" data-mf="abordagem"  onclick="toggleMF('abordagem')"><span class="dot" style="background:var(--pin-abord)"></span>ABORDAGEM</span>
-        <span class="map-chip on" data-mf="prisao"     onclick="toggleMF('prisao')"><span class="dot" style="background:var(--pin-preso)"></span>PRISÃO</span>
-        <span class="map-chip on" data-mf="averiguacao"onclick="toggleMF('averiguacao')"><span class="dot" style="background:var(--pin-averi)"></span>AVERIGUAÇÃO</span>
-        <span class="map-chip on" data-mf="crime_roubo" onclick="toggleMF('crime_roubo')"><span class="dot" style="background:var(--pin-roubo)"></span>ROUBO</span>
-        <span class="map-chip on" data-mf="crime_furto" onclick="toggleMF('crime_furto')"><span class="dot" style="background:var(--pin-furto)"></span>FURTO</span>
-        <span class="map-chip on" data-mf="crime_furto_qualificado" onclick="toggleMF('crime_furto_qualificado')"><span class="dot" style="background:var(--pin-furto-q)"></span>FURTO QUALIFICADO</span>
-        <span class="map-chip on" data-mf="crime_homicidio" onclick="toggleMF('crime_homicidio')"><span class="dot" style="background:var(--pin-homicidio)"></span>HOMICIDIO</span>
-        <span class="map-chip on" data-mf="crime_estupro" onclick="toggleMF('crime_estupro')"><span class="dot" style="background:var(--pin-estupro)"></span>ESTUPRO</span>
-        <span class="map-chip on" data-mf="crime_estelionato" onclick="toggleMF('crime_estelionato')"><span class="dot" style="background:var(--pin-estelionato)"></span>ESTELIONATO</span>
-        <span class="map-chip on" data-mf="crime_roubo_residencia" onclick="toggleMF('crime_roubo_residencia')"><span class="dot" style="background:var(--pin-roubo-res)"></span>ROUBO RESIDENCIA</span>
-        <span class="map-chip on" data-mf="crime_roubo_comercio" onclick="toggleMF('crime_roubo_comercio')"><span class="dot" style="background:var(--pin-roubo-com)"></span>ROUBO COMERCIO</span>
-        <span class="map-chip on" data-mf="crime_roubo_pedestre" onclick="toggleMF('crime_roubo_pedestre')"><span class="dot" style="background:var(--pin-roubo-ped)"></span>ROUBO PEDESTRE</span>
-        <span class="map-chip on" data-mf="crime_furto_residencia" onclick="toggleMF('crime_furto_residencia')"><span class="dot" style="background:var(--pin-furto-res)"></span>FURTO RESIDENCIA</span>
-        <span class="map-chip on" data-mf="crime_furto_comercio" onclick="toggleMF('crime_furto_comercio')"><span class="dot" style="background:var(--pin-furto-com)"></span>FURTO COMERCIO</span>
-        <span class="map-chip on" data-mf="crime_furto_arrombamento" onclick="toggleMF('crime_furto_arrombamento')"><span class="dot" style="background:var(--pin-furto-arromb)"></span>FURTO/ARROMBAMENTO</span>
-        <span class="map-chip on" data-mf="crime_trafico" onclick="toggleMF('crime_trafico')"><span class="dot" style="background:var(--pin-trafico)"></span>TRAFICO</span>
-        <span class="map-chip on" data-mf="crime_receptacao" onclick="toggleMF('crime_receptacao')"><span class="dot" style="background:var(--pin-receptacao)"></span>RECEPTACAO</span>
-        <span class="map-chip on" data-mf="crime_arma" onclick="toggleMF('crime_arma')"><span class="dot" style="background:var(--pin-arma)"></span>ARMA</span>
-        <span class="map-chip on" data-mf="crime_mandado" onclick="toggleMF('crime_mandado')"><span class="dot" style="background:var(--pin-mandado)"></span>MANDADO</span>
-        <span class="map-chip on" data-mf="baixa"      onclick="toggleMF('baixa')"><span class="dot" style="background:var(--pin-baixa)"></span>BAIXA</span>
-        <span class="map-chip on" data-mf="media"      onclick="toggleMF('media')"><span class="dot" style="background:var(--pin-media)"></span>MÉDIA</span>
-        <span class="map-chip on" data-mf="alta"       onclick="toggleMF('alta')"><span class="dot" style="background:var(--pin-alta)"></span>ALTA</span>
-        <span class="map-chip on" data-mf="veic_roubo" onclick="toggleMF('veic_roubo')"><span class="dot" style="background:var(--pin-alta)"></span>FURTO/ROUBO VEICULO</span>
-        <span class="map-chip on" data-mf="veic_recuperado" onclick="toggleMF('veic_recuperado')"><span class="dot" style="background:var(--pin-baixa)"></span>RECUPERACAO VEICULO</span>
-        <span class="map-chip on" data-mf="veic_clone" onclick="toggleMF('veic_clone')"><span class="dot" style="background:var(--pin-clone)"></span>SUSPEITA DE CLONE</span>
-        <span class="map-chip on" data-mf="residencia" onclick="toggleMF('residencia')"><span class="dot" style="background:var(--pin-res)"></span>RESIDÊNCIA</span>
-        <span class="map-chip on" data-mf="local_poi"  onclick="toggleMF('local_poi')"><span class="dot" style="background:var(--pin-poi)"></span>LOCAIS</span>
+    <button class="map-mobile-filter-btn" type="button" onclick="openMapFilters()">FILTROS <span id="mf-mobile-count">0</span></button>
+    <div class="map-filter-backdrop" id="map-filter-backdrop" onclick="closeMapFilters()"></div>
+    <div class="map-toolbar" id="map-filter-panel">
+      <div class="map-sheet-handle"></div>
+      <div class="map-filter-block">
+        <div class="map-filter-label">Natureza</div>
+        <div class="map-filter-row">
+          <span class="map-chip on c-roubo" data-mfg="natureza-roubo" onclick="toggleMFGroup('natureza-roubo')"><span class="dot"></span>Roubo</span>
+          <span class="map-chip on c-furto" data-mfg="natureza-furto" onclick="toggleMFGroup('natureza-furto')"><span class="dot"></span>Furto</span>
+          <span class="map-chip on c-prisao" data-mf="prisao" onclick="toggleMF('prisao')"><span class="dot"></span>Prisao</span>
+          <span class="map-chip on c-trafico" data-mf="crime_trafico" onclick="toggleMF('crime_trafico')"><span class="dot"></span>Trafico</span>
+          <span class="map-chip on c-homicidio" data-mf="crime_homicidio" onclick="toggleMF('crime_homicidio')"><span class="dot"></span>Homicidio</span>
+          <span class="map-chip on c-estupro" data-mf="crime_estupro" onclick="toggleMF('crime_estupro')"><span class="dot"></span>Estupro</span>
+          <span class="map-chip on c-estelionato" data-mf="crime_estelionato" onclick="toggleMF('crime_estelionato')"><span class="dot"></span>Estelionato</span>
+        </div>
       </div>
-      <div class="vsep" style="height:20px"></div>
-      <span class="map-filter-label">Período:</span>
-      <input class="fi" style="width:120px;padding:4px 8px;font-size:12px" type="date" id="mf-from" onchange="renderMapMarkers()">
-      <span style="color:var(--text3);font-size:11px">até</span>
-      <input class="fi" style="width:120px;padding:4px 8px;font-size:12px" type="date" id="mf-to"   onchange="renderMapMarkers()">
-      <button class="btn sm" onclick="clearMapDates()">LIMPAR</button>
-    </div>
-    <div id="map-main" style="flex:1;position:relative;"></div>
+      <div class="map-filter-block">
+        <div class="map-filter-label">Local do delito</div>
+        <div class="map-filter-row">
+          <span class="map-chip on c-local" data-mfg="local-residencia" onclick="toggleMFGroup('local-residencia')"><span class="dot"></span>Residencia</span>
+          <span class="map-chip on c-local" data-mfg="local-comercio" onclick="toggleMFGroup('local-comercio')"><span class="dot"></span>Comercio</span>
+          <span class="map-chip on c-local" data-mf="crime_roubo_pedestre" onclick="toggleMF('crime_roubo_pedestre')"><span class="dot"></span>Pedestre</span>
+          <span class="map-chip on c-veiculo" data-mfg="local-veiculo" onclick="toggleMFGroup('local-veiculo')"><span class="dot"></span>Veiculo</span>
+          <span class="map-chip on c-residencia" data-mf="residencia" onclick="toggleMF('residencia')"><span class="dot"></span>Enderecos</span>
+          <span class="map-chip on c-locais" data-mf="local_poi" onclick="toggleMF('local_poi')"><span class="dot"></span>Locais</span>
+        </div>
+      </div>
+      <div class="map-filter-block">
+        <div class="map-filter-label">Modalidade</div>
+        <div class="map-filter-row">
+          <span class="map-chip on c-abordagem" data-mf="abordagem" onclick="toggleMF('abordagem')"><span class="dot"></span>Abordagem</span>
+          <span class="map-chip on c-averiguacao" data-mf="averiguacao" onclick="toggleMF('averiguacao')"><span class="dot"></span>Averiguacao</span>
+          <span class="map-chip on c-arrombamento" data-mf="crime_furto_arrombamento" onclick="toggleMF('crime_furto_arrombamento')"><span class="dot"></span>Arrombamento</span>
+          <span class="map-chip on c-receptacao" data-mf="crime_receptacao" onclick="toggleMF('crime_receptacao')"><span class="dot"></span>Receptacao</span>
+          <span class="map-chip on c-arma" data-mf="crime_arma" onclick="toggleMF('crime_arma')"><span class="dot"></span>Arma</span>
+          <span class="map-chip on c-mandado" data-mf="crime_mandado" onclick="toggleMF('crime_mandado')"><span class="dot"></span>Mandado</span>
+          <span class="map-chip on c-clone" data-mf="veic_clone" onclick="toggleMF('veic_clone')"><span class="dot"></span>Clone</span>
+        </div>
+      </div>
+      <div class="map-filter-block">
+        <div class="map-filter-label">Gravidade</div>
+        <div class="map-filter-row">
+          <span class="map-chip on c-baixa" data-mf="baixa" onclick="toggleMF('baixa')"><span class="dot"></span>Baixa</span>
+          <span class="map-chip on c-media" data-mf="media" onclick="toggleMF('media')"><span class="dot"></span>Media</span>
+          <span class="map-chip on c-alta" data-mf="alta" onclick="toggleMF('alta')"><span class="dot"></span>Alta</span>
+        </div>
+      </div>
+      <div class="map-filter-block period">
+        <div class="map-filter-label">Periodo</div>
+        <div class="map-period-row">
+          <input class="fi" type="date" id="mf-from" onchange="renderMapMarkers()">
+          <span>ate</span>
+          <input class="fi" type="date" id="mf-to" onchange="renderMapMarkers()">
+        </div>
+      </div>
+      <div class="map-filter-actions">
+        <span class="map-active-count"><b id="mf-count">0</b> filtros ativos</span>
+        <button class="btn sm" onclick="clearMapDates()">LIMPAR</button>
+        <button class="btn sm primary map-apply-btn" onclick="applyMapFilters()">APLICAR FILTROS</button>
+      </div>
+    </div>    <div id="map-main" style="flex:1;position:relative;"></div>
     <div class="map-legend-box">
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-abord)"></div>ABORDAGEM</div>
-      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-preso)"></div>PRISÃO</div>
-      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-averi)"></div>AVERIGUAÇÃO</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-preso)"></div>PRISÃƒO</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-averi)"></div>AVERIGUAÃ‡ÃƒO</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-roubo)"></div>ROUBO</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-furto)"></div>FURTO</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-furto-q)"></div>FURTO QUALIFICADO</div>
@@ -172,27 +194,27 @@
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-arma)"></div>ARMA</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-mandado)"></div>MANDADO</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-baixa)"></div>BAIXA GRAVIDADE</div>
-      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-media)"></div>MÉDIA GRAVIDADE</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-media)"></div>MÃ‰DIA GRAVIDADE</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-alta)"></div>ALTA GRAVIDADE</div>
-      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-res)"></div>RESIDÊNCIA</div>
+      <div class="ml-item"><div class="ml-dot" style="background:var(--pin-res)"></div>RESIDÃŠNCIA</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-recorr)"></div>LOCAL RECORRENTE</div>
       <div class="ml-item"><div class="ml-dot" style="background:var(--pin-poi)"></div>LOCAL DE INTERESSE</div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════
-       PAGE: VEÍCULOS
-  ══════════════════════════════════ -->
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       PAGE: VEÃCULOS
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="page" id="page-ocorrencias">
     <div class="list-panel">
       <div class="panel-header">
         <div class="panel-title">Ocorrencias</div>
         <div class="search-wrap">
-          <span class="search-icon">âŒ•</span>
+          <span class="search-icon">Ã¢Å’â€¢</span>
           <input type="text" id="ocorrencias-search" placeholder="Local, historico, BA/BO, envolvidos..." oninput="renderOcorrenciasList()">
         </div>
         <div style="margin-top:8px">
-          <button class="btn primary sm" style="width:100%" onclick="openModal_ocorrencia(null)">ï¼‹ CADASTRAR OCORRENCIA</button>
+          <button class="btn primary sm" style="width:100%" onclick="openModal_ocorrencia(null)">Ã¯Â¼â€¹ CADASTRAR OCORRENCIA</button>
         </div>
       </div>
       <div class="scroll-list" id="ocorrencias-list"></div>
@@ -205,35 +227,35 @@
   <div class="page" id="page-veiculos">
     <div class="list-panel">
       <div class="panel-header">
-        <div class="panel-title">Veículos</div>
+        <div class="panel-title">VeÃ­culos</div>
         <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input type="text" id="veiculos-search" placeholder="Placa, modelo, cor…" oninput="renderVeiculosList()">
+          <span class="search-icon">âŒ•</span>
+          <input type="text" id="veiculos-search" placeholder="Placa, modelo, corâ€¦" oninput="renderVeiculosList()">
         </div>
         <div style="margin-top:8px">
-          <button class="btn primary sm" style="width:100%" onclick="openModal_veiculo(null)">＋ CADASTRAR VEÍCULO</button>
+          <button class="btn primary sm" style="width:100%" onclick="openModal_veiculo(null)">ï¼‹ CADASTRAR VEÃCULO</button>
         </div>
       </div>
       <div class="scroll-list" id="veiculos-list"></div>
     </div>
     <div class="detail-panel blank" id="veiculo-detail">
-      <div class="blank-msg">// SELECIONE UM VEÍCULO</div>
+      <div class="blank-msg">// SELECIONE UM VEÃCULO</div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════
+  <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
        PAGE: LOCAIS
-  ══════════════════════════════════ -->
+  â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
   <div class="page" id="page-locais">
     <div class="list-panel">
       <div class="panel-header">
         <div class="panel-title">Locais de Interesse</div>
         <div class="search-wrap">
-          <span class="search-icon">⌕</span>
-          <input type="text" id="locais-search" placeholder="Nome, bairro, tipo…" oninput="renderLocaisList()">
+          <span class="search-icon">âŒ•</span>
+          <input type="text" id="locais-search" placeholder="Nome, bairro, tipoâ€¦" oninput="renderLocaisList()">
         </div>
         <div style="margin-top:8px">
-          <button class="btn primary sm" style="width:100%" onclick="openModal_local(null)">＋ CADASTRAR LOCAL</button>
+          <button class="btn primary sm" style="width:100%" onclick="openModal_local(null)">ï¼‹ CADASTRAR LOCAL</button>
         </div>
       </div>
       <div class="scroll-list" id="locais-list"></div>
@@ -245,31 +267,31 @@
 
 </div><!-- /app-body -->
 
-<!-- ══════════════════════════════════════════
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
      MODAIS
-══════════════════════════════════════════ -->
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
 
 <!-- MODAL: PESSOA -->
 <div class="overlay" id="ov-pessoa">
 <div class="modal wide">
   <div class="modal-hd">
     <span class="modal-title" id="m-pessoa-title">CADASTRAR PESSOA</span>
-    <button class="modal-close" onclick="closeOv('ov-pessoa')">✕</button>
+    <button class="modal-close" onclick="closeOv('ov-pessoa')">âœ•</button>
   </div>
   <div class="modal-body">
     <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
       <div class="foto-preview" id="m-pessoa-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mp-foto-file').click()" title="Clique para escolher foto">
-        👤
+        ðŸ‘¤
         <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>
       </div>
       <div style="flex:1">
         <div class="fg">
-          <label class="fl">Foto do Indivíduo</label>
+          <label class="fl">Foto do IndivÃ­duo</label>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn sm primary" type="button" onclick="document.getElementById('mp-foto-camera').click()">📷 CÂMERA</button>
+            <button class="btn sm primary" type="button" onclick="document.getElementById('mp-foto-camera').click()">ðŸ“· CÃ‚MERA</button>
             <button class="btn sm" type="button" onclick="document.getElementById('mp-foto-file').click()">GALERIA</button>
             <span style="color:var(--text3);font-size:11px">ou</span>
-            <input class="fi" id="mp-foto" placeholder="Link OneDrive/iCloud…" oninput="previewFotoUrl()" style="flex:1">
+            <input class="fi" id="mp-foto" placeholder="Link OneDrive/iCloudâ€¦" oninput="previewFotoUrl()" style="flex:1">
           </div>
           <input type="file" id="mp-foto-camera" accept="image/*" capture="environment" style="display:none" onchange="previewFotoFile(this)">
           <input type="file" id="mp-foto-file" accept="image/*" style="display:none" onchange="previewFotoFile(this)">
@@ -287,7 +309,7 @@
       <div class="fg"><label class="fl">CPF</label><input class="fi" id="mp-cpf" placeholder="000.000.000-00"></div>
     </div>
     <div class="frow c2">
-      <div class="fg"><label class="fl">Nome da Mãe</label><input class="fi" id="mp-mae" placeholder="Nome da mãe"></div>
+      <div class="fg"><label class="fl">Nome da MÃ£e</label><input class="fi" id="mp-mae" placeholder="Nome da mÃ£e"></div>
       <div class="fg"><label class="fl">Status Principal</label>
         <select class="fs" id="mp-status">
           <option value="cadastrado">Cadastrado</option>
@@ -300,37 +322,37 @@
           <option value="foragido">Foragido</option>
           <option value="conduzido">Conduzido</option>
           <option value="testemunha">Testemunha</option>
-          <option value="vitima">Vítima</option>
+          <option value="vitima">VÃ­tima</option>
         </select>
       </div>
     </div>
-    <div class="fg"><label class="fl">Endereço Informado</label>
+    <div class="fg"><label class="fl">EndereÃ§o Informado</label>
       <div style="display:flex;gap:6px;align-items:center">
-        <input class="fi" id="mp-end" placeholder="Rua, número — bairro, cidade" style="flex:1">
+        <input class="fi" id="mp-end" placeholder="Rua, nÃºmero â€” bairro, cidade" style="flex:1">
         <button class="btn sm" type="button" onclick="buscarEnderecoCampos('mp-end','mp-lat','mp-lng','mp-bairro','mp-cidade','mp-estado','mp-numero')">BUSCAR ENDERECO</button>
       </div>
     </div>
     <div class="frow c4">
-      <div class="fg"><label class="fl">NÃºmero</label><input class="fi" id="mp-numero" placeholder="NÂº"></div>
+      <div class="fg"><label class="fl">NÃƒÂºmero</label><input class="fi" id="mp-numero" placeholder="NÃ‚Âº"></div>
       <div class="fg"><label class="fl">Bairro</label><input class="fi" id="mp-bairro" placeholder="Bairro"></div>
       <div class="fg"><label class="fl">Cidade</label><input class="fi" id="mp-cidade" placeholder="Cidade"></div>
       <div class="fg"><label class="fl">Estado</label><input class="fi" id="mp-estado" placeholder="RS"></div>
     </div>
     <div class="frow c2">
-      <div class="fg"><label class="fl">Latitude Residência</label><input class="fi" id="mp-lat" placeholder="-29.7600"></div>
-      <div class="fg"><label class="fl">Longitude Residência</label><input class="fi" id="mp-lng" placeholder="-51.1500"></div>
+      <div class="fg"><label class="fl">Latitude ResidÃªncia</label><input class="fi" id="mp-lat" placeholder="-29.7600"></div>
+      <div class="fg"><label class="fl">Longitude ResidÃªncia</label><input class="fi" id="mp-lng" placeholder="-51.1500"></div>
     </div>
     <div class="fg" style="margin-top:-6px">
-      <button class="btn sm" type="button" id="mp-gps-btn" onclick="getGPS('mp-lat','mp-lng','mp-gps-btn')">📍 USAR MINHA LOCALIZAÇÃO ATUAL</button>
+      <button class="btn sm" type="button" id="mp-gps-btn" onclick="getGPS('mp-lat','mp-lng','mp-gps-btn')">ðŸ“ USAR MINHA LOCALIZAÃ‡ÃƒO ATUAL</button>
     </div>
-    <div class="fg"><label class="fl">Características Físicas</label>
-      <textarea class="fta" id="mp-caract" placeholder="Compleição, altura estimada, tatuagens, cicatrizes, sinais particulares…"></textarea>
+    <div class="fg"><label class="fl">CaracterÃ­sticas FÃ­sicas</label>
+      <textarea class="fta" id="mp-caract" placeholder="CompleiÃ§Ã£o, altura estimada, tatuagens, cicatrizes, sinais particularesâ€¦"></textarea>
     </div>
-    <div class="fg"><label class="fl">Vínculos / Associações Conhecidas</label>
-      <textarea class="fta" id="mp-vinculos" placeholder="Facção, grupo, frequenta qual área, associados conhecidos…"></textarea>
+    <div class="fg"><label class="fl">VÃ­nculos / AssociaÃ§Ãµes Conhecidas</label>
+      <textarea class="fta" id="mp-vinculos" placeholder="FacÃ§Ã£o, grupo, frequenta qual Ã¡rea, associados conhecidosâ€¦"></textarea>
     </div>
-    <div class="fg"><label class="fl">Observações Operacionais</label>
-      <textarea class="fta" id="mp-obs" placeholder="Informações objetivas e operacionalmente relevantes…"></textarea>
+    <div class="fg"><label class="fl">ObservaÃ§Ãµes Operacionais</label>
+      <textarea class="fta" id="mp-obs" placeholder="InformaÃ§Ãµes objetivas e operacionalmente relevantesâ€¦"></textarea>
     </div>
   </div>
   <div class="modal-ft">
@@ -344,18 +366,18 @@
 <div class="overlay" id="ov-evento">
 <div class="modal wide">
   <div class="modal-hd">
-    <span class="modal-title">REGISTRAR OCORRÊNCIA</span>
-    <button class="modal-close" onclick="closeOv('ov-evento')">✕</button>
+    <span class="modal-title">REGISTRAR OCORRÃŠNCIA</span>
+    <button class="modal-close" onclick="closeOv('ov-evento')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="frow c3">
       <div class="fg"><label class="fl">Tipo *</label>
         <select class="fs" id="ev-tipo">
           <option value="abordagem">Abordagem</option>
-          <option value="prisao">Prisão em flagrante</option>
-          <option value="conducao">Condução / apresentação</option>
-          <option value="averiguacao">Averiguação</option>
-          <option value="ocorrencia">Ocorrência vinculada</option>
+          <option value="prisao">PrisÃ£o em flagrante</option>
+          <option value="conducao">ConduÃ§Ã£o / apresentaÃ§Ã£o</option>
+          <option value="averiguacao">AveriguaÃ§Ã£o</option>
+          <option value="ocorrencia">OcorrÃªncia vinculada</option>
         </select>
       </div>
       <div class="fg"><label class="fl">Data *</label><input class="fi" id="ev-data" type="date"></div>
@@ -363,7 +385,7 @@
     </div>
     <div class="fg"><label class="fl">Local *</label>
       <div style="display:flex;gap:6px;align-items:center">
-        <input class="fi" id="ev-local" placeholder="Av. X, n.º 000 — Bairro Y, Cidade Z" style="flex:1">
+        <input class="fi" id="ev-local" placeholder="Av. X, n.Âº 000 â€” Bairro Y, Cidade Z" style="flex:1">
         <button class="btn sm" type="button" onclick="buscarEnderecoCampos('ev-local','ev-lat','ev-lng')">BUSCAR ENDERECO</button>
       </div>
     </div>
@@ -372,59 +394,59 @@
       <div class="fg"><label class="fl">Longitude</label><input class="fi" id="ev-lng" placeholder="-51.1500"></div>
     </div>
     <div class="fg" style="margin-top:-6px">
-      <button class="btn sm" type="button" id="ev-gps-btn" onclick="getGPS('ev-lat','ev-lng','ev-gps-btn','ev-local')">📍 CAPTURAR LOCALIZAÇÃO ATUAL</button>
+      <button class="btn sm" type="button" id="ev-gps-btn" onclick="getGPS('ev-lat','ev-lng','ev-gps-btn','ev-local')">ðŸ“ CAPTURAR LOCALIZAÃ‡ÃƒO ATUAL</button>
     </div>
     <div class="fg"><label class="fl">Gravidade Operacional</label>
       <select class="fs" id="ev-gravidade">
-        <option value="">Automática pelo tipo</option>
+        <option value="">AutomÃ¡tica pelo tipo</option>
         <option value="baixa">Baixa gravidade</option>
-        <option value="media">Média gravidade</option>
+        <option value="media">MÃ©dia gravidade</option>
         <option value="alta">Alta / grave</option>
       </select>
-      <div class="fhint">Use como classificação operacional. A tipificação legal continua no campo Artigo Legal.</div>
+      <div class="fhint">Use como classificaÃ§Ã£o operacional. A tipificaÃ§Ã£o legal continua no campo Artigo Legal.</div>
     </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">Motivo da Abordagem</label>
         <select class="fs" id="ev-motivo">
-          <option value="">— selecione —</option>
+          <option value="">â€” selecione â€”</option>
           <option>Atitude suspeita</option>
-          <option>Denúncia</option>
+          <option>DenÃºncia</option>
           <option>Patrulhamento de rotina</option>
-          <option>Averiguação de ocorrência</option>
+          <option>AveriguaÃ§Ã£o de ocorrÃªncia</option>
           <option>Cumprimento de mandado</option>
-          <option>Fiscalização de trânsito</option>
-          <option>Apoio a outra guarnição</option>
+          <option>FiscalizaÃ§Ã£o de trÃ¢nsito</option>
+          <option>Apoio a outra guarniÃ§Ã£o</option>
         </select>
       </div>
       <div class="fg"><label class="fl">Resultado</label>
         <select class="fs" id="ev-resultado">
-          <option value="">— selecione —</option>
+          <option value="">â€” selecione â€”</option>
           <option>Nada constatado</option>
-          <option>Prisão em flagrante</option>
-          <option>Apreensão de material</option>
-          <option>Condução à delegacia</option>
-          <option>Orientação e liberação</option>
-          <option>Encaminhamento médico</option>
-          <option>Apresentação espontânea</option>
+          <option>PrisÃ£o em flagrante</option>
+          <option>ApreensÃ£o de material</option>
+          <option>ConduÃ§Ã£o Ã  delegacia</option>
+          <option>OrientaÃ§Ã£o e liberaÃ§Ã£o</option>
+          <option>Encaminhamento mÃ©dico</option>
+          <option>ApresentaÃ§Ã£o espontÃ¢nea</option>
         </select>
       </div>
     </div>
     <div class="frow c2">
-      <div class="fg"><label class="fl">Guarnição / Viatura</label><input class="fi" id="ev-viatura" placeholder="Ex: R-30, E-07, Moto-15…"></div>
-      <div class="fg"><label class="fl">N.º BA / BO / RP</label><input class="fi" id="ev-ba" placeholder="Ex: 2026/00012345"></div>
+      <div class="fg"><label class="fl">GuarniÃ§Ã£o / Viatura</label><input class="fi" id="ev-viatura" placeholder="Ex: R-30, E-07, Moto-15â€¦"></div>
+      <div class="fg"><label class="fl">N.Âº BA / BO / RP</label><input class="fi" id="ev-ba" placeholder="Ex: 2026/00012345"></div>
     </div>
     <div class="fg"><label class="fl">Objetos / Material Encontrado</label>
-      <textarea class="fta" style="min-height:56px" id="ev-objetos" placeholder="Nenhum / Descreva: entorpecentes, arma, documento falso, objeto furtado…"></textarea>
+      <textarea class="fta" style="min-height:56px" id="ev-objetos" placeholder="Nenhum / Descreva: entorpecentes, arma, documento falso, objeto furtadoâ€¦"></textarea>
     </div>
-    <div class="fg"><label class="fl">Tipificação / Artigo Legal</label>
-      <input class="fi" id="ev-tipif" placeholder="Ex: Art. 33 Lei 11.343/06 · Art. 329 CP · Art. 155 CP"></div>
-    <div class="fg"><label class="fl">Histórico Narrativo *</label>
-      <textarea class="fta" style="min-height:100px" id="ev-historico" placeholder="Descreva os fatos de forma objetiva: circunstâncias da abordagem, comportamento do indivíduo, providências adotadas…"></textarea>
+    <div class="fg"><label class="fl">TipificaÃ§Ã£o / Artigo Legal</label>
+      <input class="fi" id="ev-tipif" placeholder="Ex: Art. 33 Lei 11.343/06 Â· Art. 329 CP Â· Art. 155 CP"></div>
+    <div class="fg"><label class="fl">HistÃ³rico Narrativo *</label>
+      <textarea class="fta" style="min-height:100px" id="ev-historico" placeholder="Descreva os fatos de forma objetiva: circunstÃ¢ncias da abordagem, comportamento do indivÃ­duo, providÃªncias adotadasâ€¦"></textarea>
     </div>
-    <div class="fg"><label class="fl">Veículo Envolvido (placa)</label>
-      <input class="fi" id="ev-veiculo-placa" placeholder="ABC1D23 — deixe em branco se não houver"></div>
-    <div class="fg"><label class="fl">Outros Envolvidos (IDs separados por vírgula)</label>
-      <input class="fi" id="ev-outros" placeholder="IDs de outras pessoas cadastradas…"></div>
+    <div class="fg"><label class="fl">VeÃ­culo Envolvido (placa)</label>
+      <input class="fi" id="ev-veiculo-placa" placeholder="ABC1D23 â€” deixe em branco se nÃ£o houver"></div>
+    <div class="fg"><label class="fl">Outros Envolvidos (IDs separados por vÃ­rgula)</label>
+      <input class="fi" id="ev-outros" placeholder="IDs de outras pessoas cadastradasâ€¦"></div>
   </div>
   <div class="modal-ft">
     <button class="btn" onclick="closeOv('ov-evento')">CANCELAR</button>
@@ -438,20 +460,20 @@
 <div class="modal">
   <div class="modal-hd">
     <span class="modal-title">CONFIRMAR DADOS</span>
-    <button class="modal-close" onclick="closeOv('ov-confirmar')">✕</button>
+    <button class="modal-close" onclick="closeOv('ov-confirmar')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="frow c2">
       <div class="fg"><label class="fl">Data *</label><input class="fi" id="cf-data" type="date"></div>
       <div class="fg"><label class="fl">Hora</label><input class="fi" id="cf-hora" type="time"></div>
     </div>
-    <div class="fg"><label class="fl">Local / Referência</label><input class="fi" id="cf-local" placeholder="Local onde os dados foram conferidos"></div>
+    <div class="fg"><label class="fl">Local / ReferÃªncia</label><input class="fi" id="cf-local" placeholder="Local onde os dados foram conferidos"></div>
     <div class="frow c2">
-      <div class="fg"><label class="fl">Guarnição / Viatura</label><input class="fi" id="cf-viatura" placeholder="Ex: R-30, E-07, Moto-15"></div>
-      <div class="fg"><label class="fl">N.º BA / BO / RP</label><input class="fi" id="cf-ba" placeholder="Se houver"></div>
+      <div class="fg"><label class="fl">GuarniÃ§Ã£o / Viatura</label><input class="fi" id="cf-viatura" placeholder="Ex: R-30, E-07, Moto-15"></div>
+      <div class="fg"><label class="fl">N.Âº BA / BO / RP</label><input class="fi" id="cf-ba" placeholder="Se houver"></div>
     </div>
     <div class="fg"><label class="fl">Dados confirmados / atualizados</label>
-      <textarea class="fta" id="cf-obs" placeholder="Ex: confirmou endereço, alcunha, telefone, veículo, vínculo, foto atualizada..."></textarea>
+      <textarea class="fta" id="cf-obs" placeholder="Ex: confirmou endereÃ§o, alcunha, telefone, veÃ­culo, vÃ­nculo, foto atualizada..."></textarea>
     </div>
     <div class="fg"><label class="fl">Atualizar foto, se necessario</label>
       <div style="display:flex;gap:6px;align-items:center">
@@ -465,7 +487,7 @@
     </div>
     <label style="display:flex;gap:8px;align-items:center;color:var(--text2);font-size:12px">
       <input type="checkbox" id="cf-abordado">
-      Houve abordagem nesta confirmação
+      Houve abordagem nesta confirmaÃ§Ã£o
     </label>
   </div>
   <div class="modal-ft">
@@ -475,12 +497,12 @@
 </div>
 </div>
 
-<!-- MODAL: VÍNCULO -->
+<!-- MODAL: VÃNCULO -->
 <div class="overlay" id="ov-vinculo">
 <div class="modal narrow">
   <div class="modal-hd">
-    <span class="modal-title">ADICIONAR VÍNCULO</span>
-    <button class="modal-close" onclick="closeOv('ov-vinculo')">✕</button>
+    <span class="modal-title">ADICIONAR VÃNCULO</span>
+    <button class="modal-close" onclick="closeOv('ov-vinculo')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="fg"><label class="fl">Pessoa Vinculada</label>
@@ -491,11 +513,11 @@
       <div class="fg"><label class="fl">Nome rapido</label><input class="fi" id="vk-nome" placeholder="Ex: mae, irmao, alcunha, contato"></div>
       <div class="fg"><label class="fl">Endereco do vinculo</label><input class="fi" id="vk-endereco" placeholder="Rua, numero, bairro, cidade"></div>
     </div>
-    <div class="fg"><label class="fl">Tipo de Relação</label>
+    <div class="fg"><label class="fl">Tipo de RelaÃ§Ã£o</label>
       <select class="fs" id="vk-tipo">
-        <option>Irmão / Irmã</option>
+        <option>IrmÃ£o / IrmÃ£</option>
         <option>Familiar</option>
-        <option>Cônjuge / Companheiro(a)</option>
+        <option>CÃ´njuge / Companheiro(a)</option>
         <option>Reside junto</option>
         <option>Costuma estar junto</option>
         <option>Abordado junto</option>
@@ -505,8 +527,8 @@
         <option>Outro</option>
       </select>
     </div>
-    <div class="fg"><label class="fl">Observação</label>
-      <textarea class="fta" style="min-height:56px" id="vk-obs" placeholder="Contexto do vínculo…"></textarea>
+    <div class="fg"><label class="fl">ObservaÃ§Ã£o</label>
+      <textarea class="fta" style="min-height:56px" id="vk-obs" placeholder="Contexto do vÃ­nculoâ€¦"></textarea>
     </div>
   </div>
   <div class="modal-ft">
@@ -521,7 +543,7 @@
 <div class="modal wide">
   <div class="modal-hd">
     <span class="modal-title" id="m-ocorrencia-title">CADASTRAR OCORRENCIA</span>
-    <button class="modal-close" onclick="closeOv('ov-ocorrencia')">✕</button>
+    <button class="modal-close" onclick="closeOv('ov-ocorrencia')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="frow c2">
@@ -592,7 +614,7 @@
       <div id="oc-map-picker"></div>
     </div>
     <div class="frow c2">
-      <div class="fg"><label class="fl">N.º BA / BO / RP</label><input class="fi" id="oc-ba" placeholder="Ex: 2026/00012345"></div>
+      <div class="fg"><label class="fl">N.Âº BA / BO / RP</label><input class="fi" id="oc-ba" placeholder="Ex: 2026/00012345"></div>
       <div class="fg"><label class="fl">Veiculos Envolvidos</label><input class="fi" id="oc-veiculos" placeholder="Placas ou descricao"></div>
     </div>
     <div class="fg"><label class="fl">Pessoas Vinculadas</label>
@@ -610,12 +632,12 @@
 </div>
 </div>
 
-<!-- MODAL: VEÍCULO -->
+<!-- MODAL: VEÃCULO -->
 <div class="overlay" id="ov-oc-andamento">
 <div class="modal wide">
   <div class="modal-hd">
     <span class="modal-title">ADICIONAR ANDAMENTO</span>
-    <button class="modal-close" onclick="closeOv('ov-oc-andamento')">×</button>
+    <button class="modal-close" onclick="closeOv('ov-oc-andamento')">Ã—</button>
   </div>
   <div class="modal-body">
     <div class="frow c2">
@@ -672,15 +694,15 @@
 <div class="overlay" id="ov-veiculo">
 <div class="modal">
   <div class="modal-hd">
-    <span class="modal-title" id="m-veiculo-title">CADASTRAR VEÍCULO</span>
-    <button class="modal-close" onclick="closeOv('ov-veiculo')">✕</button>
+    <span class="modal-title" id="m-veiculo-title">CADASTRAR VEÃCULO</span>
+    <button class="modal-close" onclick="closeOv('ov-veiculo')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="frow c2">
       <div class="fg"><label class="fl">Placa *</label><input class="fi" id="mv-placa" placeholder="ABC1D23" style="font-family:var(--font-mono);letter-spacing:2px"></div>
       <div class="fg"><label class="fl">Modelo</label><input class="fi" id="mv-modelo" placeholder="Ex: Gol 1.0"></div>
     </div>
-    <div class="fg"><label class="fl">Status do Veículo</label>
+    <div class="fg"><label class="fl">Status do VeÃ­culo</label>
       <select class="fs" id="mv-status">
         <option value="cadastrado">Cadastrado</option>
         <option value="confirmado">Confirmado</option>
@@ -696,32 +718,32 @@
       </select>
     </div>
     <div class="frow c3">
-      <div class="fg"><label class="fl">Marca</label><input class="fi" id="mv-marca" placeholder="VW, Fiat…"></div>
-      <div class="fg"><label class="fl">Cor</label><input class="fi" id="mv-cor" placeholder="Branco, preto…"></div>
+      <div class="fg"><label class="fl">Marca</label><input class="fi" id="mv-marca" placeholder="VW, Fiatâ€¦"></div>
+      <div class="fg"><label class="fl">Cor</label><input class="fi" id="mv-cor" placeholder="Branco, pretoâ€¦"></div>
       <div class="fg"><label class="fl">Ano</label><input class="fi" id="mv-ano" placeholder="2015"></div>
     </div>
     <div class="frow c2">
-      <div class="fg"><label class="fl">Proprietário Informado</label><input class="fi" id="mv-prop" placeholder="Nome declarado"></div>
+      <div class="fg"><label class="fl">ProprietÃ¡rio Informado</label><input class="fi" id="mv-prop" placeholder="Nome declarado"></div>
       <div class="fg"><label class="fl">Condutor Abordado</label><input class="fi" id="mv-cond" placeholder="Nome do condutor"></div>
     </div>
     <div class="fg">
       <label class="fl">Condutor Vinculado</label>
       <select class="fs" id="mv-condutor-id"></select>
-      <div class="fhint">Vincule este veículo a uma pessoa já cadastrada para aparecer no perfil dela.</div>
+      <div class="fhint">Vincule este veÃ­culo a uma pessoa jÃ¡ cadastrada para aparecer no perfil dela.</div>
     </div>
     <div style="display:flex;gap:16px;align-items:flex-start;margin:4px 0 12px">
       <div class="foto-preview vehicle" id="m-veiculo-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mv-foto-file').click()" title="Clique para escolher foto">
-        🚗
+        ðŸš—
         <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>
       </div>
       <div style="flex:1">
         <div class="fg">
-          <label class="fl">Foto do Veículo</label>
+          <label class="fl">Foto do VeÃ­culo</label>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn sm primary" type="button" onclick="document.getElementById('mv-foto-camera').click()">📷 CÂMERA</button>
+            <button class="btn sm primary" type="button" onclick="document.getElementById('mv-foto-camera').click()">ðŸ“· CÃ‚MERA</button>
             <button class="btn sm" type="button" onclick="document.getElementById('mv-foto-file').click()">GALERIA</button>
             <span style="color:var(--text3);font-size:11px">ou</span>
-            <input class="fi" id="mv-foto" placeholder="Link OneDrive/iCloud…" oninput="previewVeiculoFotoUrl()" style="flex:1">
+            <input class="fi" id="mv-foto" placeholder="Link OneDrive/iCloudâ€¦" oninput="previewVeiculoFotoUrl()" style="flex:1">
           </div>
           <input type="file" id="mv-foto-camera" accept="image/*" capture="environment" style="display:none" onchange="previewVeiculoFotoFile(this)">
           <input type="file" id="mv-foto-file" accept="image/*" style="display:none" onchange="previewVeiculoFotoFile(this)">
@@ -729,8 +751,8 @@
         </div>
       </div>
     </div>
-    <div class="fg"><label class="fl">Ocorrências Relacionadas / Observações</label>
-      <textarea class="fta" id="mv-obs" placeholder="Citado em furto, receptação, associado a qual indivíduo, apreendido em data X…"></textarea>
+    <div class="fg"><label class="fl">OcorrÃªncias Relacionadas / ObservaÃ§Ãµes</label>
+      <textarea class="fta" id="mv-obs" placeholder="Citado em furto, receptaÃ§Ã£o, associado a qual indivÃ­duo, apreendido em data Xâ€¦"></textarea>
     </div>
     <div class="fg"><label class="fl">Info para Compartilhamento</label>
       <textarea class="fta" id="mv-share-local" placeholder="Possiveis locais de passagem, bairros onde costuma circular, ponto de apoio, rota provavel..."></textarea>
@@ -768,25 +790,25 @@
 <div class="modal">
   <div class="modal-hd">
     <span class="modal-title" id="m-local-title">CADASTRAR LOCAL</span>
-    <button class="modal-close" onclick="closeOv('ov-local')">✕</button>
+    <button class="modal-close" onclick="closeOv('ov-local')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="frow c2">
-      <div class="fg"><label class="fl">Nome / Descrição *</label><input class="fi" id="ml-nome" placeholder="Ex: Boca do Morro, Bar da Esquina…"></div>
+      <div class="fg"><label class="fl">Nome / DescriÃ§Ã£o *</label><input class="fi" id="ml-nome" placeholder="Ex: Boca do Morro, Bar da Esquinaâ€¦"></div>
       <div class="fg"><label class="fl">Tipo</label>
         <select class="fs" id="ml-tipo">
           <option value="poi">Ponto de Interesse Geral</option>
           <option value="recorrente">Local Recorrente de Abordagem</option>
-          <option value="trafico">Ponto de Tráfico</option>
+          <option value="trafico">Ponto de TrÃ¡fico</option>
           <option value="fuga">Rota de Fuga</option>
           <option value="esconderijo">Esconderijo / Cativeiro suspeito</option>
-          <option value="reuniao">Ponto de Reunião</option>
+          <option value="reuniao">Ponto de ReuniÃ£o</option>
         </select>
       </div>
     </div>
-    <div class="fg"><label class="fl">Endereço / Referência</label>
+    <div class="fg"><label class="fl">EndereÃ§o / ReferÃªncia</label>
       <div style="display:flex;gap:6px;align-items:center">
-        <input class="fi" id="ml-end" placeholder="Rua, bairro, ponto de referência…" style="flex:1">
+        <input class="fi" id="ml-end" placeholder="Rua, bairro, ponto de referÃªnciaâ€¦" style="flex:1">
         <button class="btn sm" type="button" onclick="buscarEnderecoCampos('ml-end','ml-lat','ml-lng')">BUSCAR ENDERECO</button>
       </div>
     </div>
@@ -797,8 +819,8 @@
       <div class="fg"><label class="fl">Latitude</label><input class="fi" id="ml-lat" placeholder="-29.7600"></div>
       <div class="fg"><label class="fl">Longitude</label><input class="fi" id="ml-lng" placeholder="-51.1500"></div>
     </div>
-    <div class="fg"><label class="fl">Observações Operacionais</label>
-      <textarea class="fta" id="ml-obs" placeholder="Horários de movimentação, indivíduos associados, histórico de ocorrências…"></textarea>
+    <div class="fg"><label class="fl">ObservaÃ§Ãµes Operacionais</label>
+      <textarea class="fta" id="ml-obs" placeholder="HorÃ¡rios de movimentaÃ§Ã£o, indivÃ­duos associados, histÃ³rico de ocorrÃªnciasâ€¦"></textarea>
     </div>
   </div>
   <div class="modal-ft">
@@ -813,7 +835,7 @@
 <div class="modal narrow">
   <div class="modal-hd">
     <span class="modal-title">IMPORTAR BACKUP</span>
-    <button class="modal-close" onclick="closeOv('ov-import')">✕</button>
+    <button class="modal-close" onclick="closeOv('ov-import')">âœ•</button>
   </div>
   <div class="modal-body">
     <div class="fg">
@@ -833,7 +855,7 @@
   <div class="modal" style="max-width:520px">
     <div class="modal-hd">
       <span class="modal-title">BANCO NA NUVEM</span>
-      <button class="modal-close" onclick="closeOv('ov-cloud')">✕</button>
+      <button class="modal-close" onclick="closeOv('ov-cloud')">âœ•</button>
     </div>
     <div class="modal-body">
       <div class="form-row">
@@ -843,8 +865,8 @@
       <div class="form-row">
         <label class="fl">Como usar</label>
         <div class="ival" style="line-height:1.6">
-          Seus cadastros são carregados do Supabase depois do login.
-          Ao salvar, editar, excluir ou importar dados, o app envia as alterações para o banco protegido por usuário.
+          Seus cadastros sÃ£o carregados do Supabase depois do login.
+          Ao salvar, editar, excluir ou importar dados, o app envia as alteraÃ§Ãµes para o banco protegido por usuÃ¡rio.
         </div>
       </div>
     </div>
@@ -860,7 +882,7 @@
   <div class="modal share-modal">
     <div class="modal-hd">
       <span class="modal-title">CARTAO OPERACIONAL</span>
-      <button class="modal-close" onclick="closeOv('ov-share-card')">✕</button>
+      <button class="modal-close" onclick="closeOv('ov-share-card')">âœ•</button>
     </div>
     <div class="modal-body share-body">
       <img id="share-card-img" class="share-card-img" alt="Cartao operacional para compartilhamento">
@@ -875,7 +897,7 @@
 
 <div class="overlay" id="ov-photo">
   <div class="photo-viewer">
-    <button class="modal-close photo-close" onclick="closeOv('ov-photo')">✕</button>
+    <button class="modal-close photo-close" onclick="closeOv('ov-photo')">âœ•</button>
     <div class="photo-title" id="photo-title">FOTO</div>
     <img id="photo-view-img" alt="Foto ampliada">
   </div>
