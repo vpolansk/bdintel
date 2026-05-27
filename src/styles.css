@@ -621,6 +621,13 @@ header {
   transition: border-color .12s;
 }
 .vinculo-card:hover { border-color: var(--border2); }
+.vinculo-card.vinculo-cadastrado {
+  border-color: rgba(64,144,224,.35);
+}
+.vinculo-card.vinculo-rapido {
+  border-style: dashed;
+  border-color: rgba(200,160,64,.45);
+}
 .vc-info { flex: 1; min-width: 0; }
 .vc-rel {
   font-family: var(--font-mono);
@@ -1193,12 +1200,14 @@ header {
   }
 
   #page-pessoas:not(.mobile-detail-open) .detail-panel,
+  #page-ocorrencias:not(.mobile-detail-open) .detail-panel,
   #page-veiculos:not(.mobile-detail-open) .detail-panel,
   #page-locais:not(.mobile-detail-open) .detail-panel {
     display: none;
   }
 
   #page-pessoas:not(.mobile-detail-open) .list-panel,
+  #page-ocorrencias:not(.mobile-detail-open) .list-panel,
   #page-veiculos:not(.mobile-detail-open) .list-panel,
   #page-locais:not(.mobile-detail-open) .list-panel {
     flex: 0 0 auto;
@@ -1209,6 +1218,7 @@ header {
   }
 
   #page-pessoas:not(.mobile-detail-open) .scroll-list,
+  #page-ocorrencias:not(.mobile-detail-open) .scroll-list,
   #page-veiculos:not(.mobile-detail-open) .scroll-list,
   #page-locais:not(.mobile-detail-open) .scroll-list {
     flex: 0 0 auto;
@@ -1217,12 +1227,14 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .list-panel,
+  #page-ocorrencias.mobile-detail-open .list-panel,
   #page-veiculos.mobile-detail-open .list-panel,
   #page-locais.mobile-detail-open .list-panel {
     display: none;
   }
 
   #page-pessoas.mobile-detail-open,
+  #page-ocorrencias.mobile-detail-open,
   #page-veiculos.mobile-detail-open,
   #page-locais.mobile-detail-open {
     display: block;
@@ -1231,6 +1243,7 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-panel,
+  #page-ocorrencias.mobile-detail-open .detail-panel,
   #page-veiculos.mobile-detail-open .detail-panel,
   #page-locais.mobile-detail-open .detail-panel {
     display: block;
@@ -1325,6 +1338,7 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-mobile-nav,
+  #page-ocorrencias.mobile-detail-open .detail-mobile-nav,
   #page-veiculos.mobile-detail-open .detail-mobile-nav,
   #page-locais.mobile-detail-open .detail-mobile-nav {
     width: 100%;
@@ -1333,6 +1347,7 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-head,
+  #page-ocorrencias.mobile-detail-open .detail-head,
   #page-veiculos.mobile-detail-open .detail-head,
   #page-locais.mobile-detail-open .detail-head {
     flex-direction: column;
@@ -1340,6 +1355,7 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-head-actions,
+  #page-ocorrencias.mobile-detail-open .detail-head-actions,
   #page-veiculos.mobile-detail-open .detail-head-actions,
   #page-locais.mobile-detail-open .detail-head-actions {
     width: 100%;
@@ -1347,6 +1363,7 @@ header {
   }
 
   #page-pessoas.mobile-detail-open .detail-head-actions .btn,
+  #page-ocorrencias.mobile-detail-open .detail-head-actions .btn,
   #page-veiculos.mobile-detail-open .detail-head-actions .btn,
   #page-locais.mobile-detail-open .detail-head-actions .btn {
     flex: 1 1 auto;
@@ -1508,18 +1525,21 @@ header {
   }
 
   #page-pessoas:not(.mobile-detail-open),
+  #page-ocorrencias:not(.mobile-detail-open),
   #page-veiculos:not(.mobile-detail-open),
   #page-locais:not(.mobile-detail-open) {
     flex-direction: row;
   }
 
   #page-pessoas:not(.mobile-detail-open) .list-panel,
+  #page-ocorrencias:not(.mobile-detail-open) .list-panel,
   #page-veiculos:not(.mobile-detail-open) .list-panel,
   #page-locais:not(.mobile-detail-open) .list-panel {
     width: 100%;
   }
 
   #page-pessoas.mobile-detail-open,
+  #page-ocorrencias.mobile-detail-open,
   #page-veiculos.mobile-detail-open,
   #page-locais.mobile-detail-open {
     display: block;

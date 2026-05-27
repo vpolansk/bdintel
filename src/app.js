@@ -281,6 +281,7 @@ function renderDTab() {
             </div>
             ${ev.objetos?`<div style="margin-top:8px;font-size:12px;color:var(--text2)">📦 ${ev.objetos}</div>`:''}
             <div class="tl-actions">
+              ${ev.ocorrenciaId ? `<button class="btn sm primary" onclick="abrirOcorrenciaVinculada('${ev.ocorrenciaId}')">ABRIR OCORRENCIA</button>` : ''}
               <button class="btn sm danger" onclick="deleteEvento('${p.id}',${i})">✕ EXCLUIR</button>
             </div>
           </div>
@@ -303,10 +304,10 @@ function renderDTab() {
           const outro = DB.pessoas.find(x => x.id === vk.pessoaId);
           const outroNome = outro ? outro.nome : (vk.pessoaId || '—');
           const fotoHtml = outro && outro.foto ? `<img src="${outro.foto}" onerror="this.parentElement.textContent='👤'">` : '👤';
-          return `<div class="vinculo-card" onclick="${outro?'selectPessoa(\''+outro.id+'\')':'void(0)'}">
+          return `<div class="vinculo-card ${outro ? 'vinculo-cadastrado' : 'vinculo-rapido'}" onclick="${outro?'selectPessoa(\''+outro.id+'\')':'void(0)'}">
             <div class="avatar" style="width:34px;height:34px;font-size:14px">${fotoHtml}</div>
             <div class="vc-info">
-              <div class="vc-rel">${vk.tipo}</div>
+              <div class="vc-rel">${vk.tipo} · ${outro ? 'CADASTRADO NO BANCO' : 'VINCULO RAPIDO'}</div>
               <div class="vc-name">${outro ? outroNome : (vk.nome || outroNome)}</div>
               ${vk.endereco?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.endereco}</div>`:''}
               ${vk.obs?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.obs}</div>`:''}
@@ -713,6 +714,7 @@ function openModal_confirmacao(pessoaId) {
   document.getElementById('cf-obs').value = '';
   document.getElementById('cf-foto').value = '';
   document.getElementById('cf-foto-file').value = '';
+  document.getElementById('cf-foto-camera').value = '';
   document.getElementById('cf-abordado').checked = false;
   openOv('ov-confirmar');
 }
@@ -966,9 +968,19 @@ function renderOcorrenciasList() {
 
 function selectOcorrencia(id) {
   selOcorrencia = id;
+  if (isMobileLayout()) document.getElementById('page-ocorrencias').classList.add('mobile-detail-open');
   renderOcorrenciasList();
   renderOcorrenciaDetail();
   scrollDetailIntoView('ocorrencia-detail');
+}
+
+function abrirOcorrenciaVinculada(id) {
+  if (!(DB.ocorrencias || []).some(oc => oc.id === id)) {
+    toast('Ocorrencia vinculada nao encontrada.', true);
+    return;
+  }
+  goPage('ocorrencias');
+  selectOcorrencia(id);
 }
 
 function renderOcorrenciaDetail() {
@@ -981,6 +993,9 @@ function renderOcorrenciaDetail() {
   const style = getEventoMapStyle(oc);
   const status = getOcorrenciaStatus(oc);
   el.innerHTML = `
+    <div class="detail-mobile-nav">
+      <button class="btn mobile-back" onclick="voltarLista('page-ocorrencias','ocorrencias-list')">VOLTAR A LISTA</button>
+    </div>
     <div class="detail-head">
       <div class="detail-head-info">
         <div class="detail-name">${tipoLabel(oc.tipo || 'ocorrencia')}</div>

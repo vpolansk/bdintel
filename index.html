@@ -225,7 +225,7 @@
   </div>
   <div class="modal-body">
     <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
-      <div class="foto-preview" id="m-pessoa-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mp-foto-file').click()" title="Clique para tirar/escolher foto">
+      <div class="foto-preview" id="m-pessoa-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mp-foto-file').click()" title="Clique para escolher foto">
         👤
         <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>
       </div>
@@ -233,12 +233,14 @@
         <div class="fg">
           <label class="fl">Foto do Indivíduo</label>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn sm primary" type="button" onclick="document.getElementById('mp-foto-file').click()">📷 CÂMERA / GALERIA</button>
+            <button class="btn sm primary" type="button" onclick="document.getElementById('mp-foto-camera').click()">📷 CÂMERA</button>
+            <button class="btn sm" type="button" onclick="document.getElementById('mp-foto-file').click()">GALERIA</button>
             <span style="color:var(--text3);font-size:11px">ou</span>
             <input class="fi" id="mp-foto" placeholder="Link OneDrive/iCloud…" oninput="previewFotoUrl()" style="flex:1">
           </div>
-          <input type="file" id="mp-foto-file" accept="image/*" capture="environment" style="display:none" onchange="previewFotoFile(this)">
-          <div class="fhint">Clique no avatar ou no botão para abrir câmera/galeria. Ou cole um link de nuvem.</div>
+          <input type="file" id="mp-foto-camera" accept="image/*" capture="environment" style="display:none" onchange="previewFotoFile(this)">
+          <input type="file" id="mp-foto-file" accept="image/*" style="display:none" onchange="previewFotoFile(this)">
+          <div class="fhint">Use camera, escolha da galeria/arquivos ou cole um link de nuvem.</div>
         </div>
       </div>
     </div>
@@ -421,8 +423,10 @@
     <div class="fg"><label class="fl">Atualizar foto, se necessario</label>
       <div style="display:flex;gap:6px;align-items:center">
         <input class="fi" id="cf-foto" placeholder="Link da foto ou arquivo capturado" style="flex:1">
-        <input type="file" id="cf-foto-file" accept="image/*" capture="environment" style="display:none" onchange="previewConfirmacaoFotoFile(this)">
-        <button class="btn sm" type="button" onclick="document.getElementById('cf-foto-file').click()">CAMERA/GALERIA</button>
+        <input type="file" id="cf-foto-camera" accept="image/*" capture="environment" style="display:none" onchange="previewConfirmacaoFotoFile(this)">
+        <input type="file" id="cf-foto-file" accept="image/*" style="display:none" onchange="previewConfirmacaoFotoFile(this)">
+        <button class="btn sm" type="button" onclick="document.getElementById('cf-foto-camera').click()">CAMERA</button>
+        <button class="btn sm" type="button" onclick="document.getElementById('cf-foto-file').click()">GALERIA</button>
       </div>
       <div class="fhint">Se uma foto for adicionada aqui, ela substitui a foto principal e registra a data da atualizacao.</div>
     </div>
@@ -655,7 +659,7 @@
       <div class="fhint">Vincule este veículo a uma pessoa já cadastrada para aparecer no perfil dela.</div>
     </div>
     <div style="display:flex;gap:16px;align-items:flex-start;margin:4px 0 12px">
-      <div class="foto-preview vehicle" id="m-veiculo-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mv-foto-file').click()" title="Clique para tirar/escolher foto">
+      <div class="foto-preview vehicle" id="m-veiculo-fotoprev" style="cursor:pointer;position:relative" onclick="document.getElementById('mv-foto-file').click()" title="Clique para escolher foto">
         🚗
         <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>
       </div>
@@ -663,12 +667,14 @@
         <div class="fg">
           <label class="fl">Foto do Veículo</label>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn sm primary" type="button" onclick="document.getElementById('mv-foto-file').click()">📷 CÂMERA / GALERIA</button>
+            <button class="btn sm primary" type="button" onclick="document.getElementById('mv-foto-camera').click()">📷 CÂMERA</button>
+            <button class="btn sm" type="button" onclick="document.getElementById('mv-foto-file').click()">GALERIA</button>
             <span style="color:var(--text3);font-size:11px">ou</span>
             <input class="fi" id="mv-foto" placeholder="Link OneDrive/iCloud…" oninput="previewVeiculoFotoUrl()" style="flex:1">
           </div>
-          <input type="file" id="mv-foto-file" accept="image/*" capture="environment" style="display:none" onchange="previewVeiculoFotoFile(this)">
-          <div class="fhint">Abra a câmera/galeria ou cole um link de nuvem para anexar a foto no cadastro.</div>
+          <input type="file" id="mv-foto-camera" accept="image/*" capture="environment" style="display:none" onchange="previewVeiculoFotoFile(this)">
+          <input type="file" id="mv-foto-file" accept="image/*" style="display:none" onchange="previewVeiculoFotoFile(this)">
+          <div class="fhint">Use camera, escolha da galeria/arquivos ou cole um link de nuvem.</div>
         </div>
       </div>
     </div>
