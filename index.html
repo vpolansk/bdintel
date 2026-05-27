@@ -681,6 +681,25 @@
     <div class="fg"><label class="fl">Ocorrências Relacionadas / Observações</label>
       <textarea class="fta" id="mv-obs" placeholder="Citado em furto, receptação, associado a qual indivíduo, apreendido em data X…"></textarea>
     </div>
+    <div class="info-section" style="margin:8px 0 0">
+      <div class="section-label">Local do fato do veiculo</div>
+      <div class="fhint" style="margin-bottom:8px">Use quando marcar como furtado, roubado ou recuperado. O ponto entra na linha do tempo e no mapa.</div>
+      <div class="frow c2">
+        <div class="fg"><label class="fl">Data do fato</label><input class="fi" id="mv-evento-data" type="date"></div>
+        <div class="fg"><label class="fl">Hora</label><input class="fi" id="mv-evento-hora" type="time"></div>
+      </div>
+      <div class="fg"><label class="fl">Endereco / Local</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input class="fi" id="mv-evento-local" placeholder="Rua, numero, bairro, cidade" style="flex:1">
+          <button class="btn sm" type="button" onclick="buscarEnderecoCampos('mv-evento-local','mv-evento-lat','mv-evento-lng')">BUSCAR</button>
+        </div>
+      </div>
+      <div class="frow c2">
+        <div class="fg"><label class="fl">Latitude</label><input class="fi" id="mv-evento-lat" placeholder="-29.7600"></div>
+        <div class="fg"><label class="fl">Longitude</label><input class="fi" id="mv-evento-lng" placeholder="-51.1500"></div>
+      </div>
+      <button class="btn sm" type="button" id="mv-evento-gps-btn" onclick="getGPS('mv-evento-lat','mv-evento-lng','mv-evento-gps-btn','mv-evento-local')">USAR LOCALIZACAO ATUAL</button>
+    </div>
   </div>
   <div class="modal-ft">
     <button class="btn" onclick="closeOv('ov-veiculo')">CANCELAR</button>

@@ -1600,6 +1600,10 @@ function openModal_veiculo(id) {
     const el = document.getElementById('mv-' + f);
     if (el) el.value = '';
   });
+  ['data','hora','local','lat','lng'].forEach(f => {
+    const el = document.getElementById('mv-evento-' + f);
+    if (el) el.value = '';
+  });
   document.getElementById('mv-status').value = 'cadastrado';
   renderCondutorOptions('');
   setVeiculoFotoPreview('');
@@ -1632,6 +1636,29 @@ function renderCondutorOptions(selectedId = '') {
   ].join('');
 }
 
+function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
+  if (!['furtado', 'roubado', 'recuperado'].includes(status)) return;
+  const localEl = document.getElementById('mv-evento-local');
+  if (!localEl) return;
+  const local = localEl.value.trim();
+  if (!local) return;
+  const lat = parseFloat(document.getElementById('mv-evento-lat').value);
+  const lng = parseFloat(document.getElementById('mv-evento-lng').value);
+  if (!Array.isArray(veiculo.eventos)) veiculo.eventos = [];
+  const tipo = status === 'recuperado' ? 'recuperacao_veiculo' : (status === 'roubado' ? 'roubo_veiculo' : 'furto_veiculo');
+  veiculo.eventos.push({
+    id: uid(),
+    tipo,
+    data: document.getElementById('mv-evento-data').value || new Date().toISOString().slice(0,10),
+    hora: document.getElementById('mv-evento-hora').value,
+    local,
+    lat: isNaN(lat) ? null : lat,
+    lng: isNaN(lng) ? null : lng,
+    historico: `Registro manual: veiculo ${status}.`,
+    source,
+  });
+}
+
 function saveVeiculo() {
   const placa = document.getElementById('mv-placa').value.trim().toUpperCase();
   if (!placa) { toast('Informe a placa.', true); return; }
@@ -1650,9 +1677,15 @@ function saveVeiculo() {
   };
   if (editingVeiculoId) {
     const idx = DB.veiculos.findIndex(x => x.id === editingVeiculoId);
-    if (idx >= 0) { DB.veiculos[idx] = { ...DB.veiculos[idx], ...data }; selVeiculo = editingVeiculoId; }
+    if (idx >= 0) {
+      const merged = { ...DB.veiculos[idx], ...data };
+      addVeiculoEventoManual(merged, data.status);
+      DB.veiculos[idx] = merged;
+      selVeiculo = editingVeiculoId;
+    }
   } else {
     data.id = uid();
+    addVeiculoEventoManual(data, data.status);
     DB.veiculos.push(data);
     selVeiculo = data.id;
   }
@@ -1719,6 +1752,11 @@ function renderVeiculoDetail() {
     (p.eventos||[]).some(ev => ev.veiculoPlaca && ev.veiculoPlaca.toUpperCase() === v.placa)
   );
   const condutorVinculado = DB.pessoas.find(p => p.id === v.condutorId);
+  const ocorrenciasVinculadas = (DB.ocorrencias || []).filter(oc => primeiraPlacaTexto(oc.veiculos) === normalizarPlaca(v.placa));
+  const pontosVeiculo = [
+    ...(v.eventos || []),
+    ...ocorrenciasVinculadas.map(oc => ({ ...oc, origemOcorrencia: true, ocorrenciaId: oc.id })),
+  ].filter(ev => ev.lat && ev.lng);
 
   el.innerHTML = `
     <div class="detail-mobile-nav">
@@ -1758,6 +1796,20 @@ function renderVeiculoDetail() {
               ${ev.historico ? `<div class="tl-desc">${ev.historico}</div>` : ''}
             </div>`).join('')}
         </div>` : ''}
+      ${ocorrenciasVinculadas.length ? `
+        <div class="info-section">
+          <div class="section-label">Ocorrencias Vinculadas (${ocorrenciasVinculadas.length})</div>
+          ${ocorrenciasVinculadas.map(oc => `
+            <div class="tl-card" style="margin-bottom:8px;cursor:pointer" onclick="goPage('ocorrencias');selectOcorrencia('${oc.id}')">
+              <div class="tl-local">${tipoLabel(oc.tipo || 'ocorrencia')} - ${fmtDate(oc.data)}${oc.hora ? ' - ' + oc.hora : ''}</div>
+              <div class="tl-desc">${oc.local || '-'}${oc.ba ? ' | BA/BO: ' + oc.ba : ''}</div>
+            </div>`).join('')}
+        </div>` : ''}
+      ${pontosVeiculo.length ? `
+        <div class="info-section">
+          <div class="section-label">Mapa do veiculo</div>
+          <div id="veiculo-minimap" style="height:220px;border:1px solid var(--border)"></div>
+        </div>` : ''}
       ${relacionados.length ? `
         <div class="info-section">
           <div class="section-label">Pessoas Vinculadas (${relacionados.length})</div>
@@ -1769,6 +1821,22 @@ function renderVeiculoDetail() {
         </div>` : ''}
     </div>
   `;
+
+  if (pontosVeiculo.length) {
+    setTimeout(() => {
+      if (typeof window.L === 'undefined') return;
+      const mapEl = document.getElementById('veiculo-minimap');
+      if (!mapEl) return;
+      const first = pontosVeiculo[0];
+      const mm = window.L.map('veiculo-minimap', { zoomControl: false }).setView([first.lat, first.lng], 14);
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mm);
+      pontosVeiculo.forEach(ev => {
+        const style = getEventoMapStyle(ev);
+        const color = ev.tipo === 'recuperacao_veiculo' ? '#4090e0' : (style.color || '#e05050');
+        mkIcon(color, mm, [ev.lat, ev.lng], `${tipoLabel(ev.tipo || 'ocorrencia')} - ${ev.local || ''}`);
+      });
+    }, 100);
+  }
 }
 
 function deleteVeiculo(id) {
