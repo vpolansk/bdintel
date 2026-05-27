@@ -1495,6 +1495,9 @@ function getEventoGravidade(ev) {
 }
 
 function getEventoMapStyle(ev) {
+  if (ev.tipo === 'condutor_procurado_veiculo') {
+    return { key: 'alta', color: 'var(--pin-alta)', label: 'CONDUTOR PROCURADO/FORAGIDO' };
+  }
   if (ev.tipo === 'clone_veiculo') {
     return { key: 'veic_clone', color: 'var(--pin-clone)', label: 'SUSPEITA DE CLONE' };
   }
@@ -1641,7 +1644,7 @@ function renderCondutorOptions(selectedId = '') {
 }
 
 function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
-  if (!['furtado', 'roubado', 'recuperado', 'clone'].includes(status)) return;
+  if (!['furtado', 'roubado', 'recuperado', 'clone', 'condutor_procurado'].includes(status)) return;
   const localEl = document.getElementById('mv-evento-local');
   if (!localEl) return;
   const local = localEl.value.trim();
@@ -1649,7 +1652,11 @@ function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
   const lat = parseFloat(document.getElementById('mv-evento-lat').value);
   const lng = parseFloat(document.getElementById('mv-evento-lng').value);
   if (!Array.isArray(veiculo.eventos)) veiculo.eventos = [];
-  const tipo = status === 'clone' ? 'clone_veiculo' : (status === 'recuperado' ? 'recuperacao_veiculo' : (status === 'roubado' ? 'roubo_veiculo' : 'furto_veiculo'));
+  const tipo = status === 'clone'
+    ? 'clone_veiculo'
+    : (status === 'condutor_procurado'
+      ? 'condutor_procurado_veiculo'
+      : (status === 'recuperado' ? 'recuperacao_veiculo' : (status === 'roubado' ? 'roubo_veiculo' : 'furto_veiculo')));
   veiculo.eventos.push({
     id: uid(),
     tipo,
@@ -1658,7 +1665,7 @@ function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
     local,
     lat: isNaN(lat) ? null : lat,
     lng: isNaN(lng) ? null : lng,
-    historico: `Registro manual: veiculo ${status === 'clone' ? 'com suspeita de clone' : status}.`,
+    historico: `Registro manual: veiculo ${status === 'clone' ? 'com suspeita de clone' : (status === 'condutor_procurado' ? 'com possivel procurado/foragido na conducao' : status)}.`,
     source,
   });
 }
@@ -2413,7 +2420,13 @@ function getVeiculoSituacao(v) {
 
 function getVeiculoLocalShare(v) {
   const ev = (v.eventos || []).slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))[0];
-  return ev && ev.local ? ev.local : 'Local do fato nao informado';
+  if (ev && ev.local) return ev.local;
+  const placa = normalizarPlaca(v.placa);
+  const oc = (DB.ocorrencias || [])
+    .filter(item => primeiraPlacaTexto(item.veiculos) === placa && item.local)
+    .slice()
+    .sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))[0];
+  return oc && oc.local ? oc.local : 'Local do fato nao informado';
 }
 
 function getVeiculoPessoasShare(v) {
