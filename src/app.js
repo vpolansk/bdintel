@@ -11,9 +11,9 @@ let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
 let mapFilters = { abordagem: true, prisao: true, averiguacao: true, crime_roubo: true, crime_furto: true, crime_furto_qualificado: true, crime_homicidio: true, crime_estupro: true, crime_estelionato: true, crime_roubo_residencia: true, crime_roubo_comercio: true, crime_roubo_pedestre: true, crime_furto_residencia: true, crime_furto_comercio: true, crime_furto_arrombamento: true, crime_trafico: true, crime_receptacao: true, crime_arma: true, crime_mandado: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, veic_clone: true, residencia: true, local_poi: true };
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   NAV / PAGES
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* NAV / PAGES */
+
+
 function goPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('mobile-detail-open'));
@@ -23,9 +23,9 @@ function goPage(id) {
   if (id === 'mapa') { setTimeout(() => { mapMain.invalidateSize(); renderMapMarkers(); }, 50); }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PESSOAS â€” LIST
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* PESSOAS - LIST */
+
+
 function setSF(f) {
   pessoaFilter = f;
   document.querySelectorAll('.chip').forEach(c => {
@@ -52,7 +52,7 @@ function renderPessoasList() {
   const el = document.getElementById('pessoas-list');
 
   if (!list.length) {
-    el.innerHTML = `<div class="empty-state">// NENHUM REGISTRO<br>cadastre uma pessoa para comeÃ§ar</div>`;
+    el.innerHTML = `<div class="empty-state">// NENHUM REGISTRO<br>cadastre uma pessoa para começar</div>`;
     return;
   }
 
@@ -60,25 +60,25 @@ function renderPessoasList() {
     const statuses = Array.isArray(p.status) ? p.status : [p.status];
     const badges = statuses.map(statusBadge).join('');
     const age = fmtAge(p.nascimento);
-    const local = [p.cidade, p.bairro].filter(Boolean).join(' Â· ');
-    const sub = [p.alcunha ? `"${p.alcunha}"` : null, local, age].filter(Boolean).join(' Â· ');
+    const local = [p.cidade, p.bairro].filter(Boolean).join(' · ');
+    const sub = [p.alcunha ? `"${p.alcunha}"` : null, local, age].filter(Boolean).join(' · ');
     const foto = p.foto
-      ? `<img src="${p.foto}" onerror="this.parentElement.textContent='ðŸ‘¤'">`
-      : 'ðŸ‘¤';
+      ? `<img src="${p.foto}" onerror="this.parentElement.textContent='SEM FOTO'">`
+      : 'SEM FOTO';
     return `<div class="person-card${selPessoa===p.id?' sel':''}" onclick="selectPessoa('${p.id}')">
       <div class="avatar">${foto}</div>
       <div class="pc-info">
         <div class="pc-name">${p.nome}</div>
-        <div class="pc-sub">${sub || 'â€”'}</div>
+        <div class="pc-sub">${sub || '-'}</div>
         <div class="pc-badges">${badges}</div>
       </div>
     </div>`;
   }).join('');
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   PESSOAS â€” DETAIL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* PESSOAS - DETAIL */
+
+
 let dTab = 'dados';
 
 function selectPessoa(id) {
@@ -145,13 +145,13 @@ function renderPessoaVeiculosSection(p) {
   if (!veiculos.length) return '';
   return `
     <div class="info-section">
-      <div class="section-label">VeÃ­culos Vinculados (${veiculos.length})</div>
+      <div class="section-label">Veículos Vinculados (${veiculos.length})</div>
       ${veiculos.map(v => `
         <div class="veiculo-card" style="margin-bottom:6px" onclick="goPage('veiculos');selectVeiculo('${v.id}')">
           <div class="placa">${v.placa}</div>
           <div class="v-info">
-            <div class="v-model">${[v.marca, v.modelo].filter(Boolean).join(' ') || 'VeÃ­culo'} ${v.cor?'Â· '+v.cor:''}</div>
-            <div class="v-sub">${[v.ano, v.proprietario ? 'Prop.: ' + v.proprietario : null].filter(Boolean).join(' Â· ') || 'Clique para abrir o cadastro'}</div>
+            <div class="v-model">${[v.marca, v.modelo].filter(Boolean).join(' ') || 'Veículo'} ${v.cor?'· '+v.cor:''}</div>
+            <div class="v-sub">${[v.ano, v.proprietario ? 'Prop.: ' + v.proprietario : null].filter(Boolean).join(' · ') || 'Clique para abrir o cadastro'}</div>
           </div>
         </div>
       `).join('')}
@@ -162,7 +162,7 @@ function renderPessoaVeiculosSection(p) {
 function renderPessoaDetail() {
   const p = DB.pessoas.find(x => x.id === selPessoa);
   const el = document.getElementById('pessoa-detail');
-  if (!p) { el.innerHTML = '<div class="blank-msg">// SELECIONE UM INDIVÃDUO</div>'; el.classList.add('blank'); return; }
+  if (!p) { el.innerHTML = '<div class="blank-msg">// SELECIONE UM INDIVÍDUO</div>'; el.classList.add('blank'); return; }
   el.classList.remove('blank');
 
   const statuses = Array.isArray(p.status) ? p.status : [p.status];
@@ -172,8 +172,8 @@ function renderPessoaDetail() {
   const vinculos = (p.vinculos || []).length;
 
   const foto = p.foto
-    ? `<img src="${p.foto}" onclick="event.stopPropagation();openPhotoViewer('${p.id}','pessoa')" title="Clique para ampliar" onerror="this.parentElement.textContent='ðŸ‘¤'">`
-    : 'ðŸ‘¤';
+    ? `<img src="${p.foto}" onclick="event.stopPropagation();openPhotoViewer('${p.id}','pessoa')" title="Clique para ampliar" onerror="this.parentElement.textContent='SEM FOTO'">`
+    : 'SEM FOTO';
 
   el.innerHTML = `
       <div class="detail-mobile-nav">
@@ -185,11 +185,11 @@ function renderPessoaDetail() {
         <div class="detail-name">${p.nome}</div>
         ${p.alcunha ? `<div class="detail-alcunha">"${p.alcunha}"</div>` : ''}
         <div style="margin-top:5px">${badges}</div>
-        <div class="detail-meta" style="margin-top:6px">${[age, p.bairro||p.cidade, `${eventos} ocorrÃªncia(s)`, `${vinculos} vÃ­nculo(s)`].filter(Boolean).join(' Â· ')}</div>
+        <div class="detail-meta" style="margin-top:6px">${[age, p.bairro||p.cidade, `${eventos} ocorrência(s)`, `${vinculos} vínculo(s)`].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="detail-head-actions">
         <button class="btn sm" onclick="openPessoaShareCard('${p.id}')">COMPARTILHAR</button>
-        <button class="btn sm primary" onclick="openModal_confirmacao('${p.id}')">âœ“ CONFIRMAR</button>
+        <button class="btn sm primary" onclick="openModal_confirmacao('${p.id}')">CONFIRMAR</button>
         <button class="btn sm" onclick="openModal_pessoa('${p.id}')">EDITAR</button>
         <button class="btn sm danger" onclick="deletePessoa('${p.id}')">X</button>
       </div>
@@ -197,7 +197,7 @@ function renderPessoaDetail() {
     <div class="dtabs">
       <div class="dtab${dTab==='dados'?' active':''}" onclick="setDTab('dados')">DADOS</div>
       <div class="dtab${dTab==='timeline'?' active':''}" onclick="setDTab('timeline')">LINHA DO TEMPO ${eventos>0?'<span class="count">'+eventos+'</span>':''}</div>
-      <div class="dtab${dTab==='vinculos'?' active':''}" onclick="setDTab('vinculos')">VÃNCULOS ${vinculos>0?'<span class="count">'+vinculos+'</span>':''}</div>
+      <div class="dtab${dTab==='vinculos'?' active':''}" onclick="setDTab('vinculos')">VÍNCULOS ${vinculos>0?'<span class="count">'+vinculos+'</span>':''}</div>
       <div class="dtab${dTab==='mapa'?' active':''}" onclick="setDTab('mapa')">MAPA</div>
     </div>
     <div class="detail-body" id="dbd"></div>
@@ -217,33 +217,33 @@ function renderDTab() {
     const numeroEndereco = p.numero || extrairNumeroEndereco(p.endereco || '');
     el.innerHTML = `
       <div class="info-section">
-        <div class="section-label">IdentificaÃ§Ã£o</div>
+        <div class="section-label">Identificação</div>
         <div class="info-grid">
           <div class="info-item span2"><div class="ilab">Nome Completo</div><div class="ival">${p.nome}</div></div>
-          <div class="info-item"><div class="ilab">Alcunha</div><div class="ival ${!p.alcunha?'empty':''}">${p.alcunha||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">Nascimento</div><div class="ival mono">${fmtDate(p.nascimento)}${age?' Â· '+age:''}</div></div>
-          <div class="info-item"><div class="ilab">RG</div><div class="ival mono ${!p.rg?'empty':''}">${p.rg||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">CPF</div><div class="ival mono ${!p.cpf?'empty':''}">${p.cpf||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">Foto atualizada</div><div class="ival mono ${!p.fotoAtualizadaEm?'empty':''}">${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : 'â€”'}</div></div>
-          <div class="info-item span2"><div class="ilab">Nome da MÃ£e</div><div class="ival ${!p.mae?'empty':''}">${p.mae||'â€”'}</div></div>
+          <div class="info-item"><div class="ilab">Alcunha</div><div class="ival ${!p.alcunha?'empty':''}">${p.alcunha||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Nascimento</div><div class="ival mono">${fmtDate(p.nascimento)}${age?' · '+age:''}</div></div>
+          <div class="info-item"><div class="ilab">RG</div><div class="ival mono ${!p.rg?'empty':''}">${p.rg||'-'}</div></div>
+          <div class="info-item"><div class="ilab">CPF</div><div class="ival mono ${!p.cpf?'empty':''}">${p.cpf||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Foto atualizada</div><div class="ival mono ${!p.fotoAtualizadaEm?'empty':''}">${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : '-'}</div></div>
+          <div class="info-item span2"><div class="ilab">Nome da M?e</div><div class="ival ${!p.mae?'empty':''}">${p.mae||'-'}</div></div>
         </div>
       </div>
       <div class="info-section">
-        <div class="section-label">EndereÃ§o / LocalizaÃ§Ã£o</div>
+        <div class="section-label">Endereço / Localização</div>
         <div class="info-grid cols1">
-          <div class="info-item"><div class="ilab">EndereÃ§o Informado</div><div class="ival ${!p.endereco?'empty':''}">${p.endereco||'â€”'}</div></div>
+          <div class="info-item"><div class="ilab">Endere?o Informado</div><div class="ival ${!p.endereco?'empty':''}">${p.endereco||'-'}</div></div>
         </div>
         <div class="info-grid" style="margin-top:8px">
-          <div class="info-item"><div class="ilab">NÃºmero</div><div class="ival ${!numeroEndereco?'empty':''}">${numeroEndereco||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">Bairro</div><div class="ival ${!p.bairro?'empty':''}">${p.bairro||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">Cidade</div><div class="ival ${!p.cidade?'empty':''}">${p.cidade||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">Estado</div><div class="ival ${!p.estado?'empty':''}">${p.estado||'â€”'}</div></div>
+          <div class="info-item"><div class="ilab">N?mero</div><div class="ival ${!numeroEndereco?'empty':''}">${numeroEndereco||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Bairro</div><div class="ival ${!p.bairro?'empty':''}">${p.bairro||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Cidade</div><div class="ival ${!p.cidade?'empty':''}">${p.cidade||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Estado</div><div class="ival ${!p.estado?'empty':''}">${p.estado||'-'}</div></div>
         </div>
       </div>
-      ${p.caracteristicas ? `<div class="info-section"><div class="section-label">CaracterÃ­sticas FÃ­sicas</div><div class="ival" style="white-space:pre-wrap">${p.caracteristicas}</div></div>` : ''}
+      ${p.caracteristicas ? `<div class="info-section"><div class="section-label">Características Físicas</div><div class="ival" style="white-space:pre-wrap">${p.caracteristicas}</div></div>` : ''}
       ${renderPessoaVeiculosSection(p)}
-      ${p.vinculosInfo ? `<div class="info-section"><div class="section-label">VÃ­nculos / AssociaÃ§Ãµes</div><div class="ival" style="white-space:pre-wrap">${p.vinculosInfo}</div></div>` : ''}
-      ${p.obs ? `<div class="info-section"><div class="section-label">ObservaÃ§Ãµes Operacionais</div><div class="ival" style="white-space:pre-wrap">${p.obs}</div></div>` : ''}
+      ${p.vinculosInfo ? `<div class="info-section"><div class="section-label">Vínculos / Associações</div><div class="ival" style="white-space:pre-wrap">${p.vinculosInfo}</div></div>` : ''}
+      ${p.obs ? `<div class="info-section"><div class="section-label">Observações Operacionais</div><div class="ival" style="white-space:pre-wrap">${p.obs}</div></div>` : ''}
     `;
     return;
   }
@@ -256,7 +256,7 @@ function renderDTab() {
     });
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div class="section-label" style="margin-bottom:0;border:none">LINHA DO TEMPO â€” ${evs.length} registro(s)</div>
+        <div class="section-label" style="margin-bottom:0;border:none">LINHA DO TEMPO - ${evs.length} registro(s)</div>
         <button class="btn primary sm" onclick="openModal_evento('${p.id}')">+ REGISTRAR</button>
       </div>
       ${!evs.length ? '<div class="empty-state">// SEM REGISTROS NA LINHA DO TEMPO</div>' : `
@@ -267,23 +267,23 @@ function renderDTab() {
           <div class="tl-node ${tipoClass(ev.tipo)}"></div>
           <div class="tl-header">
             <div class="tl-type ${tipoClass(ev.tipo)}">${tipoLabel(ev.tipo)}</div>
-            <div class="tl-dt">${fmtDate(ev.data)}${ev.hora?' Â· '+ev.hora:''}</div>
+            <div class="tl-dt">${fmtDate(ev.data)}${ev.hora?' - '+ev.hora:''}</div>
           </div>
           <div class="tl-card">
-            <div class="tl-local">ðŸ“ ${ev.local||'â€”'}</div>
+            <div class="tl-local">Local: ${ev.local||'-'}</div>
             ${ev.historico ? `<div class="tl-desc">${ev.historico}</div>` : ''}
             <div class="tl-tags">
               ${ev.motivo?`<span class="tl-tag">Motivo: ${ev.motivo}</span>`:''}
               ${ev.resultado?`<span class="tl-tag">Resultado: ${ev.resultado}</span>`:''}
               ${getEventoGravidade(ev)?`<span class="tl-tag">Gravidade: ${getEventoMapStyle(ev).label}</span>`:''}
-              ${ev.viatura?`<span class="tl-tag">ðŸš“ ${ev.viatura}</span>`:''}
+              ${ev.viatura?`<span class="tl-tag">Viatura: ${ev.viatura}</span>`:''}
               ${ev.ba?`<span class="tl-tag">BA/BO: ${ev.ba}</span>`:''}
-              ${ev.tipif?`<span class="tl-tag">âš– ${ev.tipif}</span>`:''}
+              ${ev.tipif?`<span class="tl-tag">Tipificacao: ${ev.tipif}</span>`:''}
             </div>
-            ${ev.objetos?`<div style="margin-top:8px;font-size:12px;color:var(--text2)">ðŸ“¦ ${ev.objetos}</div>`:''}
+            ${ev.objetos?`<div style="margin-top:8px;font-size:12px;color:var(--text2)">Objetos: ${ev.objetos}</div>`:''}
             <div class="tl-actions">
               ${ev.ocorrenciaId ? `<button class="btn sm primary" onclick="abrirOcorrenciaVinculada('${ev.ocorrenciaId}')">ABRIR OCORRENCIA</button>` : ''}
-              <button class="btn sm danger" onclick="deleteEvento('${p.id}',${i})">âœ• EXCLUIR</button>
+              <button class="btn sm danger" onclick="deleteEvento('${p.id}',${i})">EXCLUIR</button>
             </div>
           </div>
         </div>`).join('')}
@@ -296,19 +296,19 @@ function renderDTab() {
     const vks = (p.vinculos || []);
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div class="section-label" style="margin-bottom:0;border:none">VÃNCULOS â€” ${vks.length} registro(s)</div>
+        <div class="section-label" style="margin-bottom:0;border:none">VINCULOS - ${vks.length} registro(s)</div>
         <button class="btn primary sm" onclick="openModal_vinculo('${p.id}')">+ VINCULO</button>
       </div>
-      ${!vks.length ? '<div class="empty-state">// SEM VÃNCULOS REGISTRADOS</div>' : `
+      ${!vks.length ? '<div class="empty-state">// SEM VINCULOS REGISTRADOS</div>' : `
       <div class="vinculos-grid">
         ${vks.map((vk,i) => {
           const outro = DB.pessoas.find(x => x.id === vk.pessoaId);
-          const outroNome = outro ? outro.nome : (vk.pessoaId || 'â€”');
-          const fotoHtml = outro && outro.foto ? `<img src="${outro.foto}" onerror="this.parentElement.textContent='ðŸ‘¤'">` : 'ðŸ‘¤';
+          const outroNome = outro ? outro.nome : (vk.pessoaId || '-');
+          const fotoHtml = outro && outro.foto ? `<img src="${outro.foto}" onerror="this.parentElement.textContent='SEM FOTO'">` : 'SEM FOTO';
           return `<div class="vinculo-card ${outro ? 'vinculo-cadastrado' : 'vinculo-rapido'}" onclick="${outro?'selectPessoa(\''+outro.id+'\')':'void(0)'}">
             <div class="avatar" style="width:34px;height:34px;font-size:14px">${fotoHtml}</div>
             <div class="vc-info">
-              <div class="vc-rel">${vk.tipo} Â· ${outro ? 'CADASTRADO NO BANCO' : 'VINCULO RAPIDO'}</div>
+              <div class="vc-rel">${vk.tipo} - ${outro ? 'CADASTRADO NO BANCO' : 'VINCULO RAPIDO'}</div>
               <div class="vc-name">${outro ? outroNome : (vk.nome || outroNome)}</div>
               ${vk.endereco?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.endereco}</div>`:''}
               ${vk.obs?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.obs}</div>`:''}
@@ -327,8 +327,8 @@ function renderDTab() {
       <div id="mini-map" style="height:220px;margin-bottom:14px"></div>
       <div class="info-section">
         <div style="font-size:12px;color:var(--text2);line-height:1.8">
-          ${p.lat && p.lng ? `<div>ðŸ  <b>ResidÃªncia:</b> ${p.endereco||p.bairro||'coordenadas registradas'}</div>` : ''}
-          ${(p.eventos||[]).filter(e=>e.lat&&e.lng).map(e=>`<div>ðŸ“ <b>${tipoLabel(e.tipo)}:</b> ${e.local}</div>`).join('')}
+          ${p.lat && p.lng ? `<div><b>Residencia:</b> ${p.endereco||p.bairro||'coordenadas registradas'}</div>` : ''}
+          ${(p.eventos||[]).filter(e=>e.lat&&e.lng).map(e=>`<div><b>${tipoLabel(e.tipo)}:</b> ${e.local}</div>`).join('')}
         </div>
       </div>
     `;
@@ -341,7 +341,7 @@ function renderDTab() {
                      [-29.76, -51.15];
       const mm = window.L.map('mini-map', { zoomControl: false }).setView(center, 14);
       window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mm);
-      if (p.lat && p.lng) mkIcon('#40c068', mm, [p.lat, p.lng], 'ResidÃªncia');
+      if (p.lat && p.lng) mkIcon('#40c068', mm, [p.lat, p.lng], 'Residência');
       (p.eventos||[]).forEach(ev => {
         if (!ev.lat || !ev.lng) return;
         const c = ev.tipo==='prisao'?'#e05050':ev.tipo==='abordagem'?'#4090e0':'#e8c840';
@@ -363,7 +363,7 @@ function mkIcon(color, map, pos, label) {
   return window.L.marker(pos, { icon }).bindTooltip(label, { direction:'top' }).addTo(map);
 }
 
-/* â”€â”€ MODAL: PESSOA â”€â”€ */
+/* SECTION */
 function openModal_pessoa(id) {
   editingPessoaId = id;
   const isNew = !id;
@@ -374,7 +374,7 @@ function openModal_pessoa(id) {
     if (el) el.value = '';
   });
   document.getElementById('mp-status').value = 'cadastrado';
-  document.getElementById('m-pessoa-fotoprev').innerHTML = 'ðŸ‘¤';
+  document.getElementById('m-pessoa-fotoprev').innerHTML = 'SEM FOTO';
 
   if (id) {
     const p = DB.pessoas.find(x => x.id === id);
@@ -399,7 +399,7 @@ function openModal_pessoa(id) {
     document.getElementById('mp-vinculos').value = p.vinculosInfo || '';
     document.getElementById('mp-obs').value = p.obs || '';
     if (p.foto) {
-      document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${p.foto}" onclick="event.stopPropagation();openPhotoViewer('${p.id}','pessoa')" title="Clique para ampliar" onerror="this.parentElement.textContent='ðŸ‘¤'">`;
+      document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${p.foto}" onclick="event.stopPropagation();openPhotoViewer('${p.id}','pessoa')" title="Clique para ampliar" onerror="this.parentElement.textContent='SEM FOTO'">`;
     }
   }
   openOv('ov-pessoa');
@@ -409,7 +409,7 @@ function previewFotoUrl() {
   const url = document.getElementById('mp-foto').value.trim();
   const el = document.getElementById('m-pessoa-fotoprev');
   const overlay = `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>`;
-  el.innerHTML = url ? `<img src="${url}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivÃ­duo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='ðŸ‘¤'+overlay">${overlay}` : `ðŸ‘¤${overlay}`;
+  el.innerHTML = url ? `<img src="${url}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do individuo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='SEM FOTO'+overlay">${overlay}` : `SEM FOTO${overlay}`;
 }
 
 function resizeImageFile(file, maxSize = 1280, quality = 0.82) {
@@ -439,14 +439,14 @@ async function previewFotoFile(input) {
   if (compressed) {
     document.getElementById('mp-foto').value = compressed;
     const overlay = `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>`;
-    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${compressed}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivÃ­duo')" title="Clique para ampliar">${overlay}`;
+    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${compressed}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do individuo')" title="Clique para ampliar">${overlay}`;
     return;
   }
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('mp-foto').value = e.target.result;
     const overlay = `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>`;
-    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${e.target.result}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivÃ­duo')" title="Clique para ampliar">${overlay}`;
+    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${e.target.result}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do individuo')" title="Clique para ampliar">${overlay}`;
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -460,8 +460,8 @@ function setVeiculoFotoPreview(src) {
   if (!el) return;
   const overlay = vehicleFotoOverlay();
   el.innerHTML = src
-    ? `<img src="${src}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mv-foto').value.trim(),'Foto do veÃ­culo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='ðŸš—'+vehicleFotoOverlay()">${overlay}`
-    : `ðŸš—${overlay}`;
+    ? `<img src="${src}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mv-foto').value.trim(),'Foto do veiculo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='SEM FOTO'+vehicleFotoOverlay()">${overlay}`
+    : `SEM FOTO${overlay}`;
 }
 
 function previewVeiculoFotoUrl() {
@@ -537,7 +537,7 @@ async function buscarEnderecoCampos(addressId, latId, lngId, bairroId, cidadeId,
 function extrairNumeroEndereco(texto) {
   const limpo = (texto || '').trim();
   const padroes = [
-    /\b(?:n(?:\.|Âº|o|umero)?\s*)?(\d{1,6}[A-Za-z]?)\b/,
+    /\b(?:n(?:\.|º|o|umero)?\s*)?(\d{1,6}[A-Za-z]?)\b/,
     /,\s*(\d{1,6}[A-Za-z]?)\b/,
   ];
   for (const p of padroes) {
@@ -561,10 +561,10 @@ function montarEnderecoComNumero(original, found) {
 }
 
 function getGPS(latId, lngId, btnId, addressId) {
-  if (!navigator.geolocation) { toast('GPS nÃ£o disponÃ­vel neste dispositivo.', true); return; }
+  if (!navigator.geolocation) { toast('GPS não disponível neste dispositivo.', true); return; }
   const btn = document.getElementById(btnId);
   const orig = btn.innerHTML;
-  btn.innerHTML = 'â³ AGUARDANDO GPSâ€¦';
+  btn.innerHTML = '⏳ AGUARDANDO GPS⬦';
   btn.disabled = true;
 
   navigator.geolocation.getCurrentPosition(
@@ -576,43 +576,43 @@ function getGPS(latId, lngId, btnId, addressId) {
       if (latId === 'oc-lat' && lngId === 'oc-lng') setOcorrenciaCoords(lat, lng, true);
 
       if (addressId) {
-        // GeocodificaÃ§Ã£o reversa via Nominatim (OpenStreetMap) â€” gratuito, sem chave
-        btn.innerHTML = 'â³ BUSCANDO ENDEREÃ‡Oâ€¦';
+        // Geocodificação reversa via Nominatim (OpenStreetMap) - gratuito, sem chave
+        btn.innerHTML = 'BUSCANDO ENDERECO...';
         fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`, {
           headers: { 'Accept-Language': 'pt-BR,pt;q=0.9' }
         })
         .then(r => r.json())
         .then(data => {
           const a = data.address || {};
-          // Monta endereÃ§o no formato operacional: Rua, nÂº â€” Bairro, Cidade
+          // Monta endereço no formato operacional: Rua, nº - Bairro, Cidade
           const partes = [];
           if (a.road || a.pedestrian || a.path) partes.push(a.road || a.pedestrian || a.path);
-          if (a.house_number) partes[0] && (partes[0] += ', n.Âº ' + a.house_number);
+          if (a.house_number) partes[0] && (partes[0] += ', n.º ' + a.house_number);
           const bairro = a.suburb || a.neighbourhood || a.quarter || a.city_district || '';
           const cidade  = a.city || a.town || a.village || a.municipality || '';
           if (bairro) partes.push(bairro);
           if (cidade)  partes.push(cidade);
-          const enderecoFinal = partes.join(' â€” ') || data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+          const enderecoFinal = partes.join(' - ') || data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
           const addrEl = document.getElementById(addressId);
           if (addrEl && !addrEl.value.trim()) {
             addrEl.value = enderecoFinal;
           } else if (addrEl) {
-            // campo jÃ¡ preenchido â€” oferece substituiÃ§Ã£o
-            if (confirm(`Substituir o endereÃ§o atual pelo capturado?\n\n"${enderecoFinal}"`)) {
+            // campo já preenchido - oferece substituição
+            if (confirm(`Substituir o endereço atual pelo capturado?\n\n"${enderecoFinal}"`)) {
               addrEl.value = enderecoFinal;
             }
           }
           finalizarGPS(btn, orig, lat, lng);
         })
         .catch(() => {
-          // Nominatim falhou â€” preenche sÃ³ coordenadas
+          // Nominatim falhou - preenche só coordenadas
           const addrEl = document.getElementById(addressId);
           if (addrEl && !addrEl.value.trim()) {
             addrEl.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
           }
           finalizarGPS(btn, orig, lat, lng);
-          toast('EndereÃ§o nÃ£o encontrado â€” coordenadas preenchidas.', true);
+          toast('Endere?o n?o encontrado - coordenadas preenchidas.', true);
         });
       } else {
         finalizarGPS(btn, orig, lat, lng);
@@ -620,7 +620,7 @@ function getGPS(latId, lngId, btnId, addressId) {
     },
     err => {
       btn.innerHTML = orig; btn.disabled = false;
-      const msgs = { 1: 'PermissÃ£o de localizaÃ§Ã£o negada.', 2: 'PosiÃ§Ã£o indisponÃ­vel.', 3: 'Tempo esgotado.' };
+      const msgs = { 1: 'Permissão de localização negada.', 2: 'Posição indisponível.', 3: 'Tempo esgotado.' };
       toast(msgs[err.code] || 'Erro ao obter GPS.', true);
     },
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -628,10 +628,10 @@ function getGPS(latId, lngId, btnId, addressId) {
 }
 
 function finalizarGPS(btn, orig, lat, lng) {
-  btn.innerHTML = 'âœ… CAPTURADO';
+  btn.innerHTML = 'CAPTURADO';
   btn.style.color = 'var(--green3)';
   btn.style.borderColor = 'var(--green2)';
-  toast(`ðŸ“ ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+  toast(`GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
   setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; btn.style.color = ''; btn.style.borderColor = ''; }, 3500);
 }
 
@@ -698,13 +698,13 @@ function deletePessoa(id) {
   saveDB();
   renderPessoasList();
   const el = document.getElementById('pessoa-detail');
-  el.innerHTML = '<div class="blank-msg">// SELECIONE UM INDIVÃDUO</div>';
+  el.innerHTML = '<div class="blank-msg">// SELECIONE UM INDIVÍDUO</div>';
   el.classList.add('blank');
   renderMapMarkers();
-  toast('Cadastro excluÃ­do.');
+  toast('Cadastro excluído.');
 }
 
-/* â”€â”€ MODAL: CONFIRMAR DADOS â”€â”€ */
+/* SECTION */
 function openModal_confirmacao(pessoaId) {
   confirmacaoTargetId = pessoaId;
   document.getElementById('cf-data').value = new Date().toISOString().slice(0,10);
@@ -751,7 +751,7 @@ function saveConfirmacaoDados() {
     viatura: document.getElementById('cf-viatura').value.trim(),
     ba: document.getElementById('cf-ba').value.trim(),
     historico: [obs || (houveAbordagem ? 'Dados confirmados durante abordagem.' : 'Dados cadastrais confirmados.'), fotoAtualizada ? 'Foto atualizada.' : ''].filter(Boolean).join('\n'),
-    resultado: houveAbordagem ? 'Dados confirmados' : 'ConfirmaÃ§Ã£o cadastral',
+    resultado: houveAbordagem ? 'Dados confirmados' : 'Confirmação cadastral',
   };
   if (fotoAtualizada) {
     p.foto = fotoAtualizada;
@@ -768,7 +768,7 @@ function saveConfirmacaoDados() {
   toast('Dados confirmados na linha do tempo.');
 }
 
-/* â”€â”€ MODAL: EVENTO â”€â”€ */
+/* SECTION */
 function openModal_evento(pessoaId) {
   eventoTargetId = pessoaId;
   document.getElementById('ev-tipo').value = 'abordagem';
@@ -793,7 +793,7 @@ function openModal_evento(pessoaId) {
 function saveEvento() {
   const historico = document.getElementById('ev-historico').value.trim();
   const local = document.getElementById('ev-local').value.trim();
-  if (!historico || !local) { toast('Informe o local e o histÃ³rico.', true); return; }
+  if (!historico || !local) { toast('Informe o local e o histórico.', true); return; }
   const lat = parseFloat(document.getElementById('ev-lat').value);
   const lng = parseFloat(document.getElementById('ev-lng').value);
   const tipo = document.getElementById('ev-tipo').value;
@@ -879,7 +879,7 @@ function saveEvento() {
   renderOcorrenciasList();
   renderPessoaDetail();
   renderMapMarkers();
-  toast('OcorrÃªncia registrada.');
+  toast('Ocorrência registrada.');
 }
 
 function deleteEvento(pessoaId, idx) {
@@ -899,10 +899,10 @@ function deleteEvento(pessoaId, idx) {
   renderOcorrenciasList();
   renderOcorrenciaDetail();
   renderMapMarkers();
-  toast('Registro excluÃ­do.');
+  toast('Registro excluído.');
 }
 
-/* â”€â”€ MODAL: VÃNCULO â”€â”€ */
+/* SECTION */
 function getOcorrenciaTitulo(oc) {
   return oc.local || oc.ba || 'Ocorrencia sem local';
 }
@@ -1438,7 +1438,7 @@ function saveVinculo() {
   saveDB();
   closeOv('ov-vinculo');
   renderPessoaDetail();
-  toast('VÃ­nculo adicionado.');
+  toast('Vínculo adicionado.');
 }
 
 function deleteVinculo(pessoaId, idx) {
@@ -1451,12 +1451,12 @@ function deleteVinculo(pessoaId, idx) {
   }
   saveDB();
   renderPessoaDetail();
-  toast('VÃ­nculo excluÃ­do.');
+  toast('Vínculo excluído.');
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   MAPA
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* MAPA */
+
+
 function initMap() {
   if (typeof window.L === 'undefined') { setTimeout(initMap, 200); return; }
   mapMain = window.L.map('map-main', { zoomControl: false }).setView([-29.76, -51.15], 13);
@@ -1619,15 +1619,15 @@ function getEventoMapStyle(ev) {
     return { key: 'abordagem', color: 'var(--pin-abord)', label: 'ABORDAGEM' };
   }
   if (ev.tipo === 'prisao' && !ev.gravidade) {
-    return { key: 'prisao', color: 'var(--pin-preso)', label: 'PRISÃƒO' };
+    return { key: 'prisao', color: 'var(--pin-preso)', label: 'PRISÒO' };
   }
   if (ev.tipo === 'averiguacao' && !ev.gravidade) {
-    return { key: 'averiguacao', color: 'var(--pin-averi)', label: 'AVERIGUAÃ‡ÃƒO' };
+    return { key: 'averiguacao', color: 'var(--pin-averi)', label: 'AVERIGUACAO' };
   }
   const gravidade = getEventoGravidade(ev);
   const styles = {
     baixa: { key: 'baixa', color: 'var(--pin-baixa)', label: 'BAIXA GRAVIDADE' },
-    media: { key: 'media', color: 'var(--pin-media)', label: 'MÃ‰DIA GRAVIDADE' },
+    media: { key: 'media', color: 'var(--pin-media)', label: 'MEDIA GRAVIDADE' },
     alta: { key: 'alta', color: 'var(--pin-alta)', label: 'ALTA GRAVIDADE' },
   };
   return styles[gravidade] || { key: 'abordagem', color: 'var(--pin-abord)', label: 'ABORDAGEM' };
@@ -1638,11 +1638,11 @@ function renderMapMarkers() {
   mapMarkers.clearLayers();
 
   DB.pessoas.forEach(p => {
-    // residÃªncia
+    // residência
     if (mapFilters.residencia && p.lat && p.lng) {
       const icon = window.L.divIcon({ className:'', html:`<div style="width:10px;height:10px;border-radius:50%;background:var(--pin-res);border:2px solid rgba(255,255,255,.3);box-shadow:0 0 6px var(--pin-res)"></div>`, iconSize:[10,10], iconAnchor:[5,5] });
       window.L.marker([p.lat, p.lng], { icon })
-        .bindTooltip(`<b>${p.nome}</b><br>ðŸ  ResidÃªncia: ${p.endereco||p.bairro||'â€”'}`, { direction:'top' })
+        .bindTooltip(`<b>${p.nome}</b><br>Residencia: ${p.endereco||p.bairro||'-'}`, { direction:'top' })
         .on('click', () => { goPage('pessoas'); selectPessoa(p.id); })
         .addTo(mapMarkers);
     }
@@ -1656,7 +1656,7 @@ function renderMapMarkers() {
       if (!mapFilters[style.key]) return;
       const icon = window.L.divIcon({ className:'', html:`<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.3);box-shadow:0 0 5px ${color}80"></div>`, iconSize:[10,10], iconAnchor:[5,5] });
       window.L.marker([ev.lat, ev.lng], { icon })
-        .bindTooltip(`<b>${p.nome}</b><br>${tipoLabel(ev.tipo)} Â· ${style.label} Â· ${fmtDate(ev.data)}<br>ðŸ“ ${ev.local}`, { direction:'top' })
+        .bindTooltip(`<b>${p.nome}</b><br>${tipoLabel(ev.tipo)} - ${style.label} - ${fmtDate(ev.data)}<br>Local: ${ev.local}`, { direction:'top' })
         .on('click', () => { goPage('pessoas'); selectPessoa(p.id); setDTab('timeline'); })
         .addTo(mapMarkers);
     });
@@ -1671,7 +1671,7 @@ function renderMapMarkers() {
     const pessoas = getOcorrenciaPessoas(oc);
     const icon = window.L.divIcon({ className:'', html:`<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.55);box-shadow:0 0 7px ${color}80"></div>`, iconSize:[12,12], iconAnchor:[6,6] });
     window.L.marker([oc.lat, oc.lng], { icon })
-      .bindTooltip(`<b>${tipoLabel(oc.tipo || 'ocorrencia')}</b><br>${style.label} Â· ${fmtDate(oc.data)}<br>${pessoas.length ? pessoas.map(p => p.nome).join(', ') : 'Sem pessoa vinculada'}<br>ðŸ“ ${oc.local}`, { direction:'top' })
+      .bindTooltip(`<b>${tipoLabel(oc.tipo || 'ocorrencia')}</b><br>${style.label} - ${fmtDate(oc.data)}<br>${pessoas.length ? pessoas.map(p => p.nome).join(', ') : 'Sem pessoa vinculada'}<br>Local: ${oc.local}`, { direction:'top' })
       .on('click', () => { goPage('ocorrencias'); selectOcorrencia(oc.id); })
       .addTo(mapMarkers);
   });
@@ -1685,7 +1685,7 @@ function renderMapMarkers() {
       const color = style.color;
       const icon = window.L.divIcon({ className:'', html:`<div style="width:13px;height:13px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.55);box-shadow:0 0 7px ${color}80"></div>`, iconSize:[13,13], iconAnchor:[6,6] });
       window.L.marker([ev.lat, ev.lng], { icon })
-        .bindTooltip(`<b>${v.placa}</b><br>${style.label} Â· ${fmtDate(ev.data)}<br>${ev.local || ''}`, { direction:'top' })
+        .bindTooltip(`<b>${v.placa}</b><br>${style.label} - ${fmtDate(ev.data)}<br>${ev.local || ''}`, { direction:'top' })
         .on('click', () => { goPage('veiculos'); selectVeiculo(v.id); })
         .addTo(mapMarkers);
     });
@@ -1699,18 +1699,18 @@ function renderMapMarkers() {
       const c = isRecorrente ? 'var(--pin-recorr)' : 'var(--pin-poi)';
       const icon = window.L.divIcon({ className:'', html:`<div style="width:10px;height:10px;border-radius:50%;background:${c};border:2px solid rgba(255,255,255,.3)"></div>`, iconSize:[10,10], iconAnchor:[5,5] });
       window.L.marker([loc.lat, loc.lng], { icon })
-        .bindTooltip(`<b>${loc.nome}</b><br>ðŸ“ ${loc.endereco||'â€”'}`, { direction:'top' })
+        .bindTooltip(`<b>${loc.nome}</b><br>Local: ${loc.endereco||'-'}`, { direction:'top' })
         .addTo(mapMarkers);
     });
   }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   VEÃCULOS
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* VEÍCULOS */
+
+
 function openModal_veiculo(id) {
   editingVeiculoId = id;
-  document.getElementById('m-veiculo-title').textContent = id ? 'EDITAR VEÃCULO' : 'CADASTRAR VEÃCULO';
+  document.getElementById('m-veiculo-title').textContent = id ? 'EDITAR VEÍCULO' : 'CADASTRAR VEÍCULO';
   ['placa','modelo','marca','cor','ano','prop','cond','foto','obs','status'].forEach(f => {
     const el = document.getElementById('mv-' + f);
     if (el) el.value = '';
@@ -1748,7 +1748,7 @@ function renderCondutorOptions(selectedId = '') {
   if (!select) return;
   const pessoas = [...DB.pessoas].sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
   select.innerHTML = [
-    '<option value="">-- sem vÃ­nculo --</option>',
+    '<option value="">-- sem vínculo --</option>',
     ...pessoas.map(p => `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${p.nome || 'Sem nome'}${p.alcunha ? ' - ' + p.alcunha : ''}</option>`),
   ].join('');
 }
@@ -1829,7 +1829,7 @@ function saveVeiculo() {
   closeOv('ov-veiculo');
   renderVeiculosList();
   renderVeiculoDetail();
-  toast('VeÃ­culo salvo.');
+  toast('Veículo salvo.');
 }
 
 function renderVeiculosList() {
@@ -1841,15 +1841,15 @@ function renderVeiculosList() {
   document.getElementById('cnt-veiculos').textContent = DB.veiculos.length;
   const el = document.getElementById('veiculos-list');
   if (!list.length) {
-    el.innerHTML = `<div class="empty-state">// NENHUM VEÃCULO CADASTRADO</div>`;
+    el.innerHTML = `<div class="empty-state">// NENHUM VEÍCULO CADASTRADO</div>`;
     return;
   }
   el.innerHTML = list.map(v => `
     <div class="veiculo-card${selVeiculo===v.id?' sel':''}" onclick="selectVeiculo('${v.id}')">
       <div class="placa">${v.placa}</div>
       <div class="v-info">
-        <div class="v-model">${statusBadge(v.status || 'cadastrado')} ${[v.marca, v.modelo].filter(Boolean).join(' ') || 'â€”'} ${v.cor?'Â· '+v.cor:''}</div>
-        <div class="v-sub">${[v.ano, v.proprietario ? 'Prop.: ' + v.proprietario : null, getPessoaNome(v.condutorId) ? 'Cond.: ' + getPessoaNome(v.condutorId) : null].filter(Boolean).join(' Â· ') || 'â€”'}</div>
+        <div class="v-model">${statusBadge(v.status || 'cadastrado')} ${[v.marca, v.modelo].filter(Boolean).join(' ') || '-'} ${v.cor?'? '+v.cor:''}</div>
+        <div class="v-sub">${[v.ano, v.proprietario ? 'Prop.: ' + v.proprietario : null, getPessoaNome(v.condutorId) ? 'Cond.: ' + getPessoaNome(v.condutorId) : null].filter(Boolean).join(' ? ') || '-'}</div>
       </div>
     </div>`).join('');
 }
@@ -1865,7 +1865,7 @@ function selectVeiculo(id) {
 function renderVeiculoDetail() {
   const v = DB.veiculos.find(x => x.id === selVeiculo);
   const el = document.getElementById('veiculo-detail');
-  if (!v) { el.innerHTML = '<div class="blank-msg">// SELECIONE UM VEÃCULO</div>'; el.classList.add('blank'); return; }
+  if (!v) { el.innerHTML = '<div class="blank-msg">// SELECIONE UM VEÍCULO</div>'; el.classList.add('blank'); return; }
   el.classList.remove('blank');
 
   // Find related people
@@ -1889,8 +1889,8 @@ function renderVeiculoDetail() {
         <div class="placa" style="font-size:22px;padding:8px 16px;letter-spacing:4px">${v.placa}</div>
       </div>
       <div class="detail-head-info" style="margin-left:16px">
-        <div class="detail-name">${[v.marca, v.modelo].filter(Boolean).join(' ') || 'VeÃ­culo'}</div>
-        <div class="detail-meta">${statusBadge(v.status || 'cadastrado')} ${[v.cor, v.ano].filter(Boolean).join(' Â· ')}</div>
+        <div class="detail-name">${[v.marca, v.modelo].filter(Boolean).join(' ') || 'Veículo'}</div>
+        <div class="detail-meta">${statusBadge(v.status || 'cadastrado')} ${[v.cor, v.ano].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="detail-head-actions">
         <button class="btn sm" onclick="openModal_veiculo('${v.id}')">EDITAR</button>
@@ -1899,16 +1899,16 @@ function renderVeiculoDetail() {
     </div>
     <div class="detail-body">
       <div class="info-section">
-        <div class="section-label">IdentificaÃ§Ã£o</div>
+        <div class="section-label">Identificação</div>
         <div class="info-grid cols2">
-          <div class="info-item"><div class="ilab">ProprietÃ¡rio Informado</div><div class="ival ${!v.proprietario?'empty':''}">${v.proprietario||'â€”'}</div></div>
-          <div class="info-item"><div class="ilab">Condutor Abordado</div><div class="ival ${!v.condutor?'empty':''}">${v.condutor||'â€”'}</div></div>
-          <div class="info-item span2"><div class="ilab">Condutor Vinculado</div><div class="ival ${!condutorVinculado?'empty':''}">${condutorVinculado ? `<span style="cursor:pointer;color:var(--accent)" onclick="goPage('pessoas');selectPessoa('${condutorVinculado.id}')">${condutorVinculado.nome}</span>` : 'â€”'}</div></div>
+          <div class="info-item"><div class="ilab">Propriet?rio Informado</div><div class="ival ${!v.proprietario?'empty':''}">${v.proprietario||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Condutor Abordado</div><div class="ival ${!v.condutor?'empty':''}">${v.condutor||'-'}</div></div>
+          <div class="info-item span2"><div class="ilab">Condutor Vinculado</div><div class="ival ${!condutorVinculado?'empty':''}">${condutorVinculado ? `<span style="cursor:pointer;color:var(--accent)" onclick="goPage('pessoas');selectPessoa('${condutorVinculado.id}')">${condutorVinculado.nome}</span>` : '-'}</div></div>
         </div>
       </div>
       <div class="info-section"><button class="btn sm primary" onclick="openVeiculoShareCard('${v.id}')">COMPARTILHAR VEICULO</button></div>
       ${v.foto ? `<div class="info-section"><div class="section-label">Foto</div><img src="${v.foto}" onclick="openPhotoViewer('${v.id}','veiculo')" title="Clique para ampliar" style="max-height:160px;border:1px solid var(--border);object-fit:cover;cursor:zoom-in" onerror="this.style.display='none'"></div>` : ''}
-      ${v.obs ? `<div class="info-section"><div class="section-label">ObservaÃ§Ãµes</div><div class="ival" style="white-space:pre-wrap">${v.obs}</div></div>` : ''}
+      ${v.obs ? `<div class="info-section"><div class="section-label">Observações</div><div class="ival" style="white-space:pre-wrap">${v.obs}</div></div>` : ''}
       ${Array.isArray(v.eventos) && v.eventos.length ? `
         <div class="info-section">
           <div class="section-label">Linha do tempo do veiculo</div>
@@ -1938,8 +1938,8 @@ function renderVeiculoDetail() {
           <div class="section-label">Pessoas Vinculadas (${relacionados.length})</div>
           ${relacionados.map(p => `
             <div class="person-card" style="padding:8px 10px;margin-bottom:4px;border:1px solid var(--border)" onclick="goPage('pessoas');selectPessoa('${p.id}')">
-              <div class="avatar" style="width:32px;height:32px;font-size:14px">${p.foto?`<img src="${p.foto}" onerror="this.parentElement.textContent='ðŸ‘¤'">`:'ðŸ‘¤'}</div>
-              <div class="pc-info"><div class="pc-name" style="font-size:13px">${p.nome}</div><div class="pc-sub">${p.bairro||p.cidade||'â€”'}</div></div>
+              <div class="avatar" style="width:32px;height:32px;font-size:10px">${p.foto?`<img src="${p.foto}" onerror="this.parentElement.textContent='SEM FOTO'">`:'SEM FOTO'}</div>
+              <div class="pc-info"><div class="pc-name" style="font-size:13px">${p.nome}</div><div class="pc-sub">${p.bairro||p.cidade||'-'}</div></div>
             </div>`).join('')}
         </div>` : ''}
     </div>
@@ -1963,20 +1963,20 @@ function renderVeiculoDetail() {
 }
 
 function deleteVeiculo(id) {
-  if (!confirm('Excluir este veÃ­culo?')) return;
+  if (!confirm('Excluir este veículo?')) return;
   DB.veiculos = DB.veiculos.filter(v => v.id !== id);
   removeLinksForEntity('veiculo', id);
   selVeiculo = null;
   saveDB();
   renderVeiculosList();
-  document.getElementById('veiculo-detail').innerHTML = '<div class="blank-msg">// SELECIONE UM VEÃCULO</div>';
+  document.getElementById('veiculo-detail').innerHTML = '<div class="blank-msg">// SELECIONE UM VEÍCULO</div>';
   document.getElementById('veiculo-detail').classList.add('blank');
-  toast('VeÃ­culo excluÃ­do.');
+  toast('Veículo excluído.');
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   LOCAIS
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* LOCAIS */
+
+
 
 function openModal_local(id) {
   editingLocalId = id;
@@ -2043,7 +2043,7 @@ function renderLocaisList() {
       <div class="local-icon">${localEmojis[l.tipo]||'LOC'}</div>
       <div class="l-info">
         <div class="l-name">${l.nome}</div>
-        <div class="l-sub">${l.endereco||'â€”'}</div>
+        <div class="l-sub">${l.endereco||'-'}</div>
       </div>
     </div>`).join('');
 }
@@ -2120,15 +2120,65 @@ function navegarLocal(id) {
 }
 
 function addLocalMidia(id) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,video/*,application/pdf';
+  input.onchange = () => handleLocalMidiaFile(id, input);
+  input.click();
+}
+
+async function handleLocalMidiaFile(id, input) {
   const l = DB.locais.find(x => x.id === id);
   if (!l) return;
-  const url = prompt('Cole o link da foto/midia do local:');
-  if (!url) return;
+  const file = input.files && input.files[0];
+  if (!file) return;
+  let dataUrl = '';
+  let tipo = file.type || 'arquivo';
+  if (file.type.startsWith('image/')) {
+    dataUrl = await resizeImageFile(file, 1400, 0.84);
+    tipo = 'imagem';
+  } else {
+    dataUrl = await new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  }
+  if (!dataUrl) {
+    toast('Nao foi possivel carregar a midia.', true);
+    return;
+  }
   if (!Array.isArray(l.midias)) l.midias = [];
-  l.midias.push({ id: uid(), url: url.trim(), data: new Date().toISOString().slice(0,10) });
+  l.midias.push({
+    id: uid(),
+    url: dataUrl,
+    nome: file.name || 'midia',
+    tipo,
+    mime: file.type || '',
+    data: new Date().toISOString().slice(0,10),
+  });
   saveDB();
   renderLocalDetail();
   toast('Midia adicionada ao local.');
+}
+
+function abrirLocalMidia(localId, midiaId) {
+  const l = DB.locais.find(x => x.id === localId);
+  const m = l && Array.isArray(l.midias) ? l.midias.find(x => x.id === midiaId) : null;
+  if (!m || !m.url) return;
+  if ((m.mime || '').startsWith('image/') || m.tipo === 'imagem') {
+    openPhotoViewerFromSrc(m.url, m.nome || 'Midia do local');
+    return;
+  }
+  window.open(m.url, '_blank');
+}
+
+function renderLocalMidiaThumb(l, m) {
+  const isImg = (m.mime || '').startsWith('image/') || m.tipo === 'imagem';
+  return `<button class="local-media-thumb" onclick="abrirLocalMidia('${l.id}','${m.id}')">
+    ${isImg ? `<img src="${m.url}" alt="${m.nome || 'Midia'}">` : `<span>${(m.nome || 'ARQUIVO').slice(0, 18)}</span>`}
+  </button>`;
 }
 
 function renderLocalDetail() {
@@ -2174,7 +2224,7 @@ function renderLocalDetail() {
           <div class="local-mini-list">
             ${dossie.pessoas.length ? dossie.pessoas.slice(0, 6).map(p => `
               <div class="local-mini-item" onclick="goPage('pessoas');selectPessoa('${p.id}')">
-                <div class="mini-avatar">${p.foto ? `<img src="${p.foto}" onerror="this.parentElement.textContent='ID'">` : 'ID'}</div>
+                <div class="mini-avatar">${p.foto ? `<img src="${p.foto}" onerror="this.parentElement.textContent='SEM FOTO'">` : 'SEM FOTO'}</div>
                 <div><b>${p.nome}</b><span>${[p.bairro, p.cidade].filter(Boolean).join(' - ') || 'sem endereco'}</span></div>
               </div>`).join('') : '<div class="empty-state">Nenhuma pessoa relacionada ainda</div>'}
           </div>
@@ -2221,7 +2271,7 @@ function renderLocalDetail() {
         <details class="local-fold" open>
           <summary>Midia (${midias.length})</summary>
           <div class="local-media-grid">
-            ${midias.length ? midias.map(m => `<a href="${m.url}" target="_blank"><img src="${m.url}" onerror="this.parentElement.textContent='ABRIR MIDIA'"></a>`).join('') : `<button class="btn sm" onclick="addLocalMidia('${l.id}')">ADICIONAR MIDIA</button>`}
+            ${midias.length ? midias.map(m => renderLocalMidiaThumb(l, m)).join('') : `<div class="local-media-empty">SEM FOTO</div><button class="btn sm" onclick="addLocalMidia('${l.id}')">ADICIONAR MIDIA</button>`}
           </div>
         </details>
       </section>
@@ -2249,12 +2299,12 @@ function deleteLocal(id) {
   document.getElementById('local-detail').innerHTML = '<div class="blank-msg">// SELECIONE UM LOCAL</div>';
   document.getElementById('local-detail').classList.add('blank');
   document.getElementById('cnt-locais').textContent = DB.locais.length;
-  toast('Local excluÃ­do.');
+  toast('Local excluído.');
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   CLOUD-SYNCED JSON FILE
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* CLOUD-SYNCED JSON FILE */
+
+
 function renderCloudStatus(status) {
   const badge = document.getElementById('cloud-sync-status');
   const detail = document.getElementById('cloud-detail');
@@ -2262,11 +2312,11 @@ function renderCloudStatus(status) {
     badge.textContent = status.label || 'LOCAL';
     badge.className = 'sync-status';
     if (status.connected) badge.classList.add('on');
-    if (status.label === 'ERRO' || status.label === 'INDISPONÃVEL' || status.label === 'SEM PERMISSÃƒO') {
+    if (status.label === 'ERRO' || status.label === 'INDISPONÍVEL' || status.label === 'SEM PERMISSÒO') {
       badge.classList.add('err');
     }
   }
-  if (detail) detail.textContent = status.detail || 'Aguardando conexÃ£o com a nuvem.';
+  if (detail) detail.textContent = status.detail || 'Aguardando conexão com a nuvem.';
 }
 
 function setAuthUi(session) {
@@ -2303,7 +2353,7 @@ async function handleAuthLogin(event) {
     toast('Login realizado.');
   } catch(e) {
     setAuthUi(null);
-    setAuthError('E-mail ou senha invÃ¡lidos, ou conexÃ£o indisponÃ­vel.');
+    setAuthError('E-mail ou senha inválidos, ou conexão indisponível.');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -2318,9 +2368,9 @@ async function handleAuthLogout() {
     await signOutCloud();
     setAuthUi(null);
     renderAll();
-    toast('SessÃ£o encerrada.');
+    toast('Sessão encerrada.');
   } catch(e) {
-    toast('NÃ£o foi possÃ­vel sair agora.', true);
+    toast('Não foi possível sair agora.', true);
   }
 }
 
@@ -2333,7 +2383,7 @@ async function createCloudFile() {
     await saveToBackupFileNow();
     toast('Nuvem sincronizada.');
   } catch(e) {
-    toast('NÃ£o foi possÃ­vel sincronizar a nuvem.', true);
+    toast('Não foi possível sincronizar a nuvem.', true);
   }
 }
 
@@ -2341,14 +2391,14 @@ async function openExistingCloudFile() {
   try {
     await loadCloudFileData();
   } catch(e) {
-    toast('NÃ£o foi possÃ­vel carregar a nuvem.', true);
+    toast('Não foi possível carregar a nuvem.', true);
   }
 }
 
 async function loadCloudFileData() {
   try {
     const data = await importFromBackupFile();
-    if (!data) { toast('FaÃ§a login primeiro.', true); return; }
+    if (!data) { toast('Faça login primeiro.', true); return; }
     selPessoa = selVeiculo = selLocal = null;
     renderAll();
     renderPessoaDetail();
@@ -2364,7 +2414,7 @@ async function loadCloudFileData() {
 async function syncCloudNow() {
   try {
     const ok = await saveToBackupFileNow();
-    if (!ok) { toast('FaÃ§a login primeiro.', true); return; }
+    if (!ok) { toast('Faça login primeiro.', true); return; }
     toast('Nuvem sincronizada.');
   } catch(e) {
     toast('Erro ao sincronizar a nuvem.', true);
@@ -2375,15 +2425,15 @@ async function disconnectCloudFile() {
   try {
     await clearBackupHandle();
     setAuthUi(null);
-    toast('SessÃ£o encerrada.');
+    toast('Sessão encerrada.');
   } catch(e) {
-    toast('Erro ao encerrar sessÃ£o.', true);
+    toast('Erro ao encerrar sessão.', true);
   }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   EXPORT / IMPORT
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* EXPORT / IMPORT */
+
+
 function exportDB() {
   const json = JSON.stringify(DB, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -2415,8 +2465,8 @@ function loadImportFile(input) {
 function doImport() {
   try {
     const parsed = JSON.parse(document.getElementById('import-json').value.trim());
-    if (!parsed.pessoas) throw new Error('Formato invÃ¡lido');
-    if (!confirm(`Importar ${parsed.pessoas.length} pessoas, ${(parsed.veiculos||[]).length} veÃ­culos e ${(parsed.locais||[]).length} locais?\nOs dados atuais serÃ£o substituÃ­dos.`)) return;
+    if (!parsed.pessoas) throw new Error('Formato inválido');
+    if (!confirm(`Importar ${parsed.pessoas.length} pessoas, ${(parsed.veiculos||[]).length} veículos e ${(parsed.locais||[]).length} locais?\nOs dados atuais serão substituídos.`)) return;
     DB = normalizeDB({ pessoas: parsed.pessoas||[], veiculos: parsed.veiculos||[], locais: parsed.locais||[], ocorrencias: parsed.ocorrencias||[], links: parsed.links||[] });
     saveDB();
     closeOv('ov-import');
@@ -2424,13 +2474,13 @@ function doImport() {
     renderAll();
     toast('Dados importados com sucesso.');
   } catch(e) {
-    toast('Erro: JSON invÃ¡lido.', true);
+    toast('Erro: JSON inválido.', true);
   }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   MODAL HELPERS
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* MODAL HELPERS */
+
+
 function openOv(id) { document.getElementById(id).classList.add('open'); }
 function closeOv(id) { document.getElementById(id).classList.remove('open'); }
 
@@ -2853,9 +2903,9 @@ document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   TOAST
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* TOAST */
+
+
 function toast(msg, err = false) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -2865,9 +2915,9 @@ function toast(msg, err = false) {
   setTimeout(() => el.classList.remove('show'), 2800);
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   RENDER ALL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* RENDER ALL */
+
+
 function renderAll() {
   renderPessoasList();
   renderOcorrenciasList();
@@ -2881,9 +2931,9 @@ function renderAll() {
   if (mapMarkers) renderMapMarkers();
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   BOOT
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* BOOT */
+
+
 async function bootApp() {
   setBackupStatusListener(renderCloudStatus);
   loadDB();
@@ -2914,7 +2964,7 @@ async function bootApp() {
   } catch(e) {
     setAuthUi(null);
     setBackupStatus({ connected: false, label: 'ERRO', detail: 'Nao foi possivel conectar ao Supabase.' });
-    setAuthError('NÃ£o foi possÃ­vel conectar ao Supabase. Confira a internet e tente novamente.');
+    setAuthError('Não foi possível conectar ao Supabase. Confira a internet e tente novamente.');
   }
 }
 

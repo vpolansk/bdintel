@@ -1,6 +1,6 @@
-/* ── FORMAT HELPERS ── */
+/* Format helpers */
 function fmtDate(d) {
-  if (!d) return '—';
+  if (!d) return '-';
   const [y,m,dd] = d.split('-');
   return `${dd}/${m}/${y}`;
 }
@@ -20,7 +20,7 @@ function statusBadge(s) {
     foragido:   ['b-foragido',  'FORAGIDO'],
     conduzido:  ['b-conduzido', 'CONDUZIDO'],
     testemunha: ['b-testemunha','TESTEMUNHA'],
-    vitima:     ['b-vitima',    'VÍTIMA'],
+    vitima:     ['b-vitima',    'VITIMA'],
     averiguado: ['b-averiguado','AVERIGUADO'],
     furtado:    ['b-procurado', 'FURTADO'],
     roubado:    ['b-procurado', 'ROUBADO'],
@@ -35,7 +35,7 @@ function statusBadge(s) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 function tipoLabel(t) {
-  return { cadastro:'CADASTRO INICIAL', confirmacao:'CONFIRMAÇÃO DE DADOS', abordagem:'ABORDAGEM', prisao:'PRISÃO EM FLAGRANTE', conducao:'CONDUÇÃO', averiguacao:'AVERIGUAÇÃO', ocorrencia:'OCORRÊNCIA', roubo:'ROUBO', furto:'FURTO', furto_qualificado:'FURTO QUALIFICADO', homicidio:'HOMICÍDIO', estupro:'ESTUPRO', estelionato:'ESTELIONATO', roubo_residencia:'ROUBO A RESIDÊNCIA', roubo_comercio:'ROUBO A COMÉRCIO', roubo_pedestre:'ROUBO A PEDESTRE', furto_residencia:'FURTO EM RESIDÊNCIA', furto_comercio:'FURTO EM COMÉRCIO', furto_arrombamento:'FURTO/ARROMBAMENTO', trafico:'TRÁFICO', receptacao:'RECEPTAÇÃO', porte_arma:'PORTE/POSSE DE ARMA', mandado:'CUMPRIMENTO DE MANDADO', furto_veiculo:'FURTO DE VEICULO', roubo_veiculo:'ROUBO DE VEICULO', recuperacao_veiculo:'RECUPERACAO DE VEICULO', clone_veiculo:'SUSPEITA DE CLONE', condutor_procurado_veiculo:'CONDUTOR PROCURADO/FORAGIDO' }[t] || t.toUpperCase();
+  return { cadastro:'CADASTRO INICIAL', confirmacao:'CONFIRMACAO DE DADOS', abordagem:'ABORDAGEM', prisao:'PRISAO EM FLAGRANTE', conducao:'CONDUCAO', averiguacao:'AVERIGUACAO', ocorrencia:'OCORRENCIA', roubo:'ROUBO', furto:'FURTO', furto_qualificado:'FURTO QUALIFICADO', homicidio:'HOMICIDIO', estupro:'ESTUPRO', estelionato:'ESTELIONATO', roubo_residencia:'ROUBO A RESIDENCIA', roubo_comercio:'ROUBO A COMERCIO', roubo_pedestre:'ROUBO A PEDESTRE', furto_residencia:'FURTO EM RESIDENCIA', furto_comercio:'FURTO EM COMERCIO', furto_arrombamento:'FURTO/ARROMBAMENTO', trafico:'TRAFICO', receptacao:'RECEPTACAO', porte_arma:'PORTE/POSSE DE ARMA', mandado:'CUMPRIMENTO DE MANDADO', furto_veiculo:'FURTO DE VEICULO', roubo_veiculo:'ROUBO DE VEICULO', recuperacao_veiculo:'RECUPERACAO DE VEICULO', clone_veiculo:'SUSPEITA DE CLONE', condutor_procurado_veiculo:'CONDUTOR PROCURADO/FORAGIDO' }[t] || t.toUpperCase();
 }
 function tipoClass(t) {
   if (t === 'cadastro' || t === 'confirmacao') return 'confirmacao';
