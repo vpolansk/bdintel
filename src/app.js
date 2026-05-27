@@ -10,7 +10,7 @@ let shareCardVeiculoId = null;
 let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
-let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, veic_clone: true, residencia: true, local_poi: true };
+let mapFilters = { abordagem: true, prisao: true, averiguacao: true, crime_roubo: true, crime_furto: true, crime_furto_qualificado: true, crime_homicidio: true, crime_estupro: true, crime_estelionato: true, crime_roubo_residencia: true, crime_roubo_comercio: true, crime_roubo_pedestre: true, crime_furto_residencia: true, crime_furto_comercio: true, crime_furto_arrombamento: true, crime_trafico: true, crime_receptacao: true, crime_arma: true, crime_mandado: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, veic_clone: true, residencia: true, local_poi: true };
 /* ══════════════════════════════════════════════════════════════
    NAV / PAGES
 ══════════════════════════════════════════════════════════════ */
@@ -1488,6 +1488,8 @@ function inDateRange(d) {
 
 function getEventoGravidade(ev) {
   if (ev.gravidade) return ev.gravidade;
+  if (['roubo', 'roubo_residencia', 'roubo_comercio', 'roubo_pedestre', 'furto_qualificado', 'homicidio', 'estupro', 'porte_arma', 'mandado'].includes(ev.tipo)) return 'alta';
+  if (['estelionato', 'furto', 'furto_residencia', 'furto_comercio', 'furto_arrombamento', 'trafico', 'receptacao'].includes(ev.tipo)) return 'media';
   if (ev.tipo === 'prisao') return 'alta';
   if (ev.tipo === 'conducao' || ev.tipo === 'ocorrencia') return 'media';
   if (ev.tipo === 'averiguacao') return 'baixa';
@@ -1495,6 +1497,54 @@ function getEventoGravidade(ev) {
 }
 
 function getEventoMapStyle(ev) {
+  if (ev.tipo === 'roubo') {
+    return { key: 'crime_roubo', color: 'var(--pin-roubo)', label: 'ROUBO' };
+  }
+  if (ev.tipo === 'furto') {
+    return { key: 'crime_furto', color: 'var(--pin-furto)', label: 'FURTO' };
+  }
+  if (ev.tipo === 'furto_qualificado') {
+    return { key: 'crime_furto_qualificado', color: 'var(--pin-furto-q)', label: 'FURTO QUALIFICADO' };
+  }
+  if (ev.tipo === 'homicidio') {
+    return { key: 'crime_homicidio', color: 'var(--pin-homicidio)', label: 'HOMICIDIO' };
+  }
+  if (ev.tipo === 'estupro') {
+    return { key: 'crime_estupro', color: 'var(--pin-estupro)', label: 'ESTUPRO' };
+  }
+  if (ev.tipo === 'estelionato') {
+    return { key: 'crime_estelionato', color: 'var(--pin-estelionato)', label: 'ESTELIONATO' };
+  }
+  if (ev.tipo === 'roubo_residencia') {
+    return { key: 'crime_roubo_residencia', color: 'var(--pin-roubo-res)', label: 'ROUBO A RESIDENCIA' };
+  }
+  if (ev.tipo === 'roubo_comercio') {
+    return { key: 'crime_roubo_comercio', color: 'var(--pin-roubo-com)', label: 'ROUBO A COMERCIO' };
+  }
+  if (ev.tipo === 'roubo_pedestre') {
+    return { key: 'crime_roubo_pedestre', color: 'var(--pin-roubo-ped)', label: 'ROUBO A PEDESTRE' };
+  }
+  if (ev.tipo === 'furto_residencia') {
+    return { key: 'crime_furto_residencia', color: 'var(--pin-furto-res)', label: 'FURTO EM RESIDENCIA' };
+  }
+  if (ev.tipo === 'furto_comercio') {
+    return { key: 'crime_furto_comercio', color: 'var(--pin-furto-com)', label: 'FURTO EM COMERCIO' };
+  }
+  if (ev.tipo === 'furto_arrombamento') {
+    return { key: 'crime_furto_arrombamento', color: 'var(--pin-furto-arromb)', label: 'FURTO/ARROMBAMENTO' };
+  }
+  if (ev.tipo === 'trafico') {
+    return { key: 'crime_trafico', color: 'var(--pin-trafico)', label: 'TRAFICO' };
+  }
+  if (ev.tipo === 'receptacao') {
+    return { key: 'crime_receptacao', color: 'var(--pin-receptacao)', label: 'RECEPTACAO' };
+  }
+  if (ev.tipo === 'porte_arma') {
+    return { key: 'crime_arma', color: 'var(--pin-arma)', label: 'ARMA DE FOGO' };
+  }
+  if (ev.tipo === 'mandado') {
+    return { key: 'crime_mandado', color: 'var(--pin-mandado)', label: 'MANDADO' };
+  }
   if (ev.tipo === 'condutor_procurado_veiculo') {
     return { key: 'alta', color: 'var(--pin-alta)', label: 'CONDUTOR PROCURADO/FORAGIDO' };
   }
