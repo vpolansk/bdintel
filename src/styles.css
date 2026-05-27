@@ -1590,6 +1590,7 @@ header {
     justify-content: stretch;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .map-active-count {

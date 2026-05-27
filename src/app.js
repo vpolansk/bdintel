@@ -190,8 +190,8 @@ function renderPessoaDetail() {
       <div class="detail-head-actions">
         <button class="btn sm" onclick="openPessoaShareCard('${p.id}')">COMPARTILHAR</button>
         <button class="btn sm primary" onclick="openModal_confirmacao('${p.id}')">✓ CONFIRMAR</button>
-        <button class="btn sm" onclick="openModal_pessoa('${p.id}')">✏ EDITAR</button>
-        <button class="btn sm danger" onclick="deletePessoa('${p.id}')">✕</button>
+        <button class="btn sm" onclick="openModal_pessoa('${p.id}')">EDITAR</button>
+        <button class="btn sm danger" onclick="deletePessoa('${p.id}')">X</button>
       </div>
     </div>
     <div class="dtabs">
@@ -257,7 +257,7 @@ function renderDTab() {
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="section-label" style="margin-bottom:0;border:none">LINHA DO TEMPO — ${evs.length} registro(s)</div>
-        <button class="btn primary sm" onclick="openModal_evento('${p.id}')">＋ REGISTRAR</button>
+        <button class="btn primary sm" onclick="openModal_evento('${p.id}')">+ REGISTRAR</button>
       </div>
       ${!evs.length ? '<div class="empty-state">// SEM REGISTROS NA LINHA DO TEMPO</div>' : `
       <div class="timeline-wrap">
@@ -297,7 +297,7 @@ function renderDTab() {
     el.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div class="section-label" style="margin-bottom:0;border:none">VÍNCULOS — ${vks.length} registro(s)</div>
-        <button class="btn primary sm" onclick="openModal_vinculo('${p.id}')">＋ VÍNCULO</button>
+        <button class="btn primary sm" onclick="openModal_vinculo('${p.id}')">+ VINCULO</button>
       </div>
       ${!vks.length ? '<div class="empty-state">// SEM VÍNCULOS REGISTRADOS</div>' : `
       <div class="vinculos-grid">
@@ -313,7 +313,7 @@ function renderDTab() {
               ${vk.endereco?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.endereco}</div>`:''}
               ${vk.obs?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.obs}</div>`:''}
             </div>
-            <button class="btn sm danger" onclick="event.stopPropagation();deleteVinculo('${p.id}',${i})">✕</button>
+            <button class="btn sm danger" onclick="event.stopPropagation();deleteVinculo('${p.id}',${i})">X</button>
           </div>`;
         }).join('')}
       </div>`}
@@ -1507,6 +1507,12 @@ function toggleMFGroup(group) {
   if (!shouldDeferMapRender()) renderMapMarkers();
 }
 
+function setAllMapFilters(enabled) {
+  Object.keys(mapFilters).forEach(key => { mapFilters[key] = enabled; });
+  updateMapFilterUI();
+  if (!shouldDeferMapRender()) renderMapMarkers();
+}
+
 function openMapFilters() {
   document.getElementById('map-filter-panel')?.classList.add('open');
   document.getElementById('map-filter-backdrop')?.classList.add('open');
@@ -1887,8 +1893,8 @@ function renderVeiculoDetail() {
         <div class="detail-meta">${statusBadge(v.status || 'cadastrado')} ${[v.cor, v.ano].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="detail-head-actions">
-        <button class="btn sm" onclick="openModal_veiculo('${v.id}')">✏ EDITAR</button>
-        <button class="btn sm danger" onclick="deleteVeiculo('${v.id}')">✕</button>
+        <button class="btn sm" onclick="openModal_veiculo('${v.id}')">EDITAR</button>
+        <button class="btn sm danger" onclick="deleteVeiculo('${v.id}')">X</button>
       </div>
     </div>
     <div class="detail-body">
@@ -2068,8 +2074,8 @@ function renderLocalDetail() {
         <div class="detail-meta">${l.endereco||'—'}</div>
       </div>
       <div class="detail-head-actions">
-        <button class="btn sm" onclick="openModal_local('${l.id}')">✏ EDITAR</button>
-        <button class="btn sm danger" onclick="deleteLocal('${l.id}')">✕</button>
+        <button class="btn sm" onclick="openModal_local('${l.id}')">EDITAR</button>
+        <button class="btn sm danger" onclick="deleteLocal('${l.id}')">X</button>
       </div>
     </div>
     <div class="detail-body">
