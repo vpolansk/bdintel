@@ -225,16 +225,16 @@ function renderDTab() {
           <div class="info-item"><div class="ilab">RG</div><div class="ival mono ${!p.rg?'empty':''}">${p.rg||'-'}</div></div>
           <div class="info-item"><div class="ilab">CPF</div><div class="ival mono ${!p.cpf?'empty':''}">${p.cpf||'-'}</div></div>
           <div class="info-item"><div class="ilab">Foto atualizada</div><div class="ival mono ${!p.fotoAtualizadaEm?'empty':''}">${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : '-'}</div></div>
-          <div class="info-item span2"><div class="ilab">Nome da M?e</div><div class="ival ${!p.mae?'empty':''}">${p.mae||'-'}</div></div>
+          <div class="info-item span2"><div class="ilab">Nome da Mae</div><div class="ival ${!p.mae?'empty':''}">${p.mae||'-'}</div></div>
         </div>
       </div>
       <div class="info-section">
         <div class="section-label">Endereço / Localização</div>
         <div class="info-grid cols1">
-          <div class="info-item"><div class="ilab">Endere?o Informado</div><div class="ival ${!p.endereco?'empty':''}">${p.endereco||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Endereco Informado</div><div class="ival ${!p.endereco?'empty':''}">${p.endereco||'-'}</div></div>
         </div>
         <div class="info-grid" style="margin-top:8px">
-          <div class="info-item"><div class="ilab">N?mero</div><div class="ival ${!numeroEndereco?'empty':''}">${numeroEndereco||'-'}</div></div>
+          <div class="info-item"><div class="ilab">Numero</div><div class="ival ${!numeroEndereco?'empty':''}">${numeroEndereco||'-'}</div></div>
           <div class="info-item"><div class="ilab">Bairro</div><div class="ival ${!p.bairro?'empty':''}">${p.bairro||'-'}</div></div>
           <div class="info-item"><div class="ilab">Cidade</div><div class="ival ${!p.cidade?'empty':''}">${p.cidade||'-'}</div></div>
           <div class="info-item"><div class="ilab">Estado</div><div class="ival ${!p.estado?'empty':''}">${p.estado||'-'}</div></div>
@@ -322,35 +322,159 @@ function renderDTab() {
   }
 
   if (dTab === 'mapa') {
+    const pontos = getPessoaMapaPontos(p);
+    const residencia = pontos.find(pt => pt.tipo === 'residencia');
+    const eventosMapa = pontos.filter(pt => pt.tipo !== 'residencia');
+    const veiculos = getVeiculosDaPessoa(p.id);
+    const resumo = [p.obs, p.vinculosInfo, p.caracteristicas].filter(Boolean).join('\n\n');
     el.innerHTML = `
-      <div class="section-label">PONTOS REGISTRADOS</div>
-      <div id="mini-map" style="height:220px;margin-bottom:14px"></div>
-      <div class="info-section">
-        <div style="font-size:12px;color:var(--text2);line-height:1.8">
-          ${p.lat && p.lng ? `<div><b>Residencia:</b> ${p.endereco||p.bairro||'coordenadas registradas'}</div>` : ''}
-          ${(p.eventos||[]).filter(e=>e.lat&&e.lng).map(e=>`<div><b>${tipoLabel(e.tipo)}:</b> ${e.local}</div>`).join('')}
-        </div>
+      <div class="pessoa-map-dossier">
+        <section class="pessoa-map-panel pessoa-map-summary">
+          <div class="section-label">Resumo operacional</div>
+          <div class="pessoa-map-text">${resumo || 'Sem resumo operacional cadastrado.'}</div>
+          <div class="pessoa-map-tags">
+            <span>${pontos.length} ponto(s)</span>
+            <span>${eventosMapa.length} evento(s)</span>
+            <span>${veiculos.length} veiculo(s)</span>
+          </div>
+        </section>
+        <section class="pessoa-map-panel pessoa-map-main">
+          <div class="pessoa-map-head">
+            <div>
+              <div class="section-label">Mapa de mobilidade</div>
+              <div class="pessoa-map-sub">Residencia, abordagens, ocorrencias e pontos vinculados</div>
+            </div>
+            <div class="pessoa-map-actions">
+              ${residencia ? `<button class="btn sm primary" onclick="navegarPessoaPonto('residencia')">NAVEGAR RESIDENCIA</button>` : ''}
+              <button class="btn sm" onclick="openModal_evento('${p.id}')">REGISTRAR OCORRENCIA</button>
+            </div>
+          </div>
+          <div id="mini-map" class="pessoa-intel-map"></div>
+          <div class="pessoa-map-legend">
+            <span><i class="pm-dot residencia"></i>Residencia</span>
+            <span><i class="pm-dot evento"></i>Abordagem/ocorrencia</span>
+            <span><i class="pm-dot prisao"></i>Prisao/mandado</span>
+            <span><i class="pm-dot veiculo"></i>Veiculo</span>
+          </div>
+        </section>
+        <section class="pessoa-map-panel">
+          <details class="local-fold" open>
+            <summary>Enderecos vinculados (${pontos.length})</summary>
+            <div class="pessoa-point-list">
+              ${pontos.length ? pontos.map(pt => renderPessoaPontoCard(pt)).join('') : '<div class="empty-state">Nenhum ponto com GPS cadastrado</div>'}
+            </div>
+          </details>
+        </section>
+        <section class="pessoa-map-panel">
+          <details class="local-fold" open>
+            <summary>Ocorrencias / abordagens (${eventosMapa.length})</summary>
+            <div class="pessoa-point-list">
+              ${eventosMapa.length ? eventosMapa.map(pt => renderPessoaPontoCard(pt, true)).join('') : '<div class="empty-state">Nenhum evento com local cadastrado</div>'}
+            </div>
+          </details>
+        </section>
+        <section class="pessoa-map-panel">
+          <details class="local-fold" open>
+            <summary>Veiculos vinculados (${veiculos.length})</summary>
+            <div class="pessoa-point-list">
+              ${veiculos.length ? veiculos.map(v => `<div class="pessoa-point-card" onclick="goPage('veiculos');selectVeiculo('${v.id}')"><div class="mini-plate">${v.placa || 'PLACA'}</div><div><b>${[v.marca, v.modelo].filter(Boolean).join(' ') || 'Veiculo'}</b><span>${[v.cor, v.ano].filter(Boolean).join(' - ') || 'cadastro vinculado'}</span></div></div>`).join('') : '<div class="empty-state">Nenhum veiculo vinculado</div>'}
+            </div>
+          </details>
+        </section>
       </div>
     `;
-    function buildMiniMap() {
-      if (typeof window.L === 'undefined') { setTimeout(buildMiniMap, 200); return; }
-      const mapEl = document.getElementById('mini-map');
-      if (!mapEl) return;
-      const center = (p.lat && p.lng) ? [p.lat, p.lng] :
-                     (p.eventos||[]).find(e=>e.lat) ? [p.eventos.find(e=>e.lat).lat, p.eventos.find(e=>e.lat).lng] :
-                     [-29.76, -51.15];
-      const mm = window.L.map('mini-map', { zoomControl: false }).setView(center, 14);
-      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mm);
-      if (p.lat && p.lng) mkIcon('#40c068', mm, [p.lat, p.lng], 'Residência');
-      (p.eventos||[]).forEach(ev => {
-        if (!ev.lat || !ev.lng) return;
-        const c = ev.tipo==='prisao'?'#e05050':ev.tipo==='abordagem'?'#4090e0':'#e8c840';
-        mkIcon(c, mm, [ev.lat, ev.lng], tipoLabel(ev.tipo));
-      });
-    }
-    setTimeout(buildMiniMap, 100);
+    setTimeout(() => buildPessoaMiniMap(pontos), 100);
     return;
   }
+
+}
+
+function getPessoaMapaPontos(p) {
+  const pontos = [];
+  if (p.lat && p.lng) {
+    pontos.push({ id: 'residencia', tipo: 'residencia', sigla: 'CASA', cor: '#4090e0', lat: +p.lat, lng: +p.lng, titulo: 'Residencia habitual', detalhe: p.endereco || [p.bairro, p.cidade].filter(Boolean).join(' - ') || 'Coordenadas cadastradas', data: '' });
+  }
+
+  (p.eventos || []).forEach((ev, idx) => {
+    if (!ev.lat || !ev.lng) return;
+    const style = getEventoMapStyle(ev);
+    const sigla = ev.tipo === 'prisao' ? 'PR' : ev.tipo === 'abordagem' ? 'AB' : ev.tipo === 'conducao' ? 'CD' : 'EV';
+    pontos.push({ id: 'ev-' + idx, tipo: ev.tipo || 'evento', sigla, cor: style.color || '#e8c840', lat: +ev.lat, lng: +ev.lng, titulo: tipoLabel(ev.tipo || 'ocorrencia'), detalhe: ev.local || ev.historico || 'Evento registrado', data: fmtDate(ev.data), eventoIndex: idx });
+  });
+
+  (DB.ocorrencias || []).forEach(oc => {
+    if (!oc.lat || !oc.lng || !(oc.pessoasIds || []).includes(p.id)) return;
+    const style = getEventoMapStyle(oc);
+    pontos.push({ id: 'oc-' + oc.id, tipo: 'ocorrencia', sigla: 'OC', cor: style.color || '#e05050', lat: +oc.lat, lng: +oc.lng, titulo: tipoLabel(oc.tipo || 'ocorrencia'), detalhe: oc.local || oc.historico || 'Ocorrencia vinculada', data: fmtDate(oc.data), ocorrenciaId: oc.id });
+  });
+
+  getVeiculosDaPessoa(p.id).forEach(v => {
+    (v.eventos || []).forEach((ev, idx) => {
+      if (!ev.lat || !ev.lng) return;
+      const style = getEventoMapStyle(ev);
+      pontos.push({ id: 'veic-' + v.id + '-' + idx, tipo: 'veiculo', sigla: 'VEIC', cor: style.color || '#8b5cf6', lat: +ev.lat, lng: +ev.lng, titulo: (v.placa || 'Veiculo') + ' - ' + (style.label || tipoLabel(ev.tipo || 'evento')), detalhe: ev.local || 'Ponto vinculado ao veiculo', data: fmtDate(ev.data), veiculoId: v.id });
+    });
+  });
+
+  return pontos.filter(pt => Number.isFinite(pt.lat) && Number.isFinite(pt.lng));
+}
+
+function pessoaPontoClass(pt) {
+  if (pt.tipo === 'residencia') return 'residencia';
+  if (pt.tipo === 'prisao' || pt.tipo === 'ocorrencia') return 'prisao';
+  if (pt.tipo === 'veiculo') return 'veiculo';
+  return 'evento';
+}
+
+function renderPessoaPontoCard(pt, compact = false) {
+  const action = pt.ocorrenciaId ? `goPage('ocorrencias');selectOcorrencia('${pt.ocorrenciaId}')` : pt.veiculoId ? `goPage('veiculos');selectVeiculo('${pt.veiculoId}')` : 'void(0)';
+  return `<div class="pessoa-point-card" onclick="${action}">
+    <div class="pessoa-point-icon ${pessoaPontoClass(pt)}">${pt.sigla}</div>
+    <div>
+      <b>${pt.titulo}</b>
+      <span>${[pt.detalhe, pt.data].filter(Boolean).join(' - ')}</span>
+      ${compact ? '' : `<button class="btn sm" onclick="event.stopPropagation();navegarPessoaPonto('${pt.id}')">NAVEGAR</button>`}
+    </div>
+  </div>`;
+}
+
+function navegarPessoaPonto(id) {
+  const p = DB.pessoas.find(x => x.id === selPessoa);
+  if (!p) return;
+  const pt = getPessoaMapaPontos(p).find(x => x.id === id);
+  if (!pt) return;
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pt.lat + ',' + pt.lng)}`, '_blank');
+}
+
+function buildPessoaMiniMap(pontos) {
+  if (typeof window.L === 'undefined') { setTimeout(() => buildPessoaMiniMap(pontos), 200); return; }
+  const mapEl = document.getElementById('mini-map');
+  if (!mapEl) return;
+  const center = pontos.length ? [pontos[0].lat, pontos[0].lng] : [-29.76, -51.15];
+  const mm = window.L.map('mini-map', { zoomControl: true }).setView(center, 14);
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mm);
+  const bounds = [];
+  pontos.forEach(pt => {
+    mkPessoaMapIcon(pt, mm);
+    bounds.push([pt.lat, pt.lng]);
+  });
+  if (bounds.length > 1) {
+    window.L.polyline(bounds, { color: '#c8a040', weight: 2, opacity: .55, dashArray: '5,7' }).addTo(mm);
+    mm.fitBounds(bounds, { padding: [28, 28], maxZoom: 15 });
+  } else if (bounds.length === 1) {
+    mm.setView(bounds[0], 15);
+  }
+}
+
+function mkPessoaMapIcon(pt, map) {
+  if (typeof window.L === 'undefined') return null;
+  const cls = pessoaPontoClass(pt);
+  const icon = window.L.divIcon({
+    className: '',
+    html: `<div class="pessoa-map-marker ${cls}" style="--pm-color:${pt.cor}">${pt.sigla}</div>`,
+    iconSize: [34, 34], iconAnchor: [17, 17]
+  });
+  return window.L.marker([pt.lat, pt.lng], { icon }).bindTooltip(`<b>${pt.titulo}</b><br>${pt.detalhe || ''}`, { direction:'top' }).addTo(map);
 }
 
 function mkIcon(color, map, pos, label) {
