@@ -2026,26 +2026,32 @@ function loadCanvasImage(src) {
 }
 
 function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-  const words = String(text || '').replace(/\s+/g, ' ').trim().split(' ');
-  let line = '';
-  let lines = 0;
-  for (let i = 0; i < words.length; i++) {
-    const test = line ? `${line} ${words[i]}` : words[i];
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, y);
-      y += lineHeight;
-      lines++;
-      line = words[i];
-      if (lines >= maxLines - 1) break;
-    } else {
-      line = test;
-    }
+  const raw = String(text || '').trim();
+  if (!raw) return y;
+  const lines = [];
+  raw.split(/\n+/).forEach(paragraph => {
+    let line = '';
+    paragraph.trim().split(/\s+/).filter(Boolean).forEach(word => {
+      const test = line ? `${line} ${word}` : word;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
+    });
+    if (line) lines.push(line);
+  });
+  const visible = lines.slice(0, maxLines);
+  if (lines.length > maxLines && visible.length) {
+    let last = visible[visible.length - 1];
+    while (last.length > 3 && ctx.measureText(last + '...').width > maxWidth) last = last.slice(0, -1);
+    visible[visible.length - 1] = last.replace(/\s+$/, '') + '...';
   }
-  if (line && lines < maxLines) {
-    const remaining = words.slice(words.indexOf(line.split(' ')[0]) + line.split(' ').length).length;
-    ctx.fillText(remaining > 0 && lines === maxLines - 1 ? line.replace(/.{3}$/, '...') : line, x, y);
+  visible.forEach(line => {
+    ctx.fillText(line, x, y);
     y += lineHeight;
-  }
+  });
   return y;
 }
 
@@ -2064,7 +2070,7 @@ function drawField(ctx, label, value, x, y, w, h, valueColor = '#111827') {
 async function gerarPessoaShareCard(p) {
   const canvas = document.createElement('canvas');
   canvas.width = 720;
-  canvas.height = 1160;
+  canvas.height = 1280;
   const ctx = canvas.getContext('2d');
   const situacao = getPessoaSituacao(p);
   const hoje = new Date();
@@ -2074,10 +2080,10 @@ async function gerarPessoaShareCard(p) {
   ctx.fillStyle = '#f3f4f6';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(20, 20, 680, 1050);
+  ctx.fillRect(20, 20, 680, 1168);
   ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 2;
-  ctx.strokeRect(20, 20, 680, 1050);
+  ctx.strokeRect(20, 20, 680, 1168);
 
   ctx.fillStyle = '#111827';
   ctx.font = 'bold 28px Arial';
@@ -2087,7 +2093,7 @@ async function gerarPessoaShareCard(p) {
   ctx.fillText(`Cartao operacional - ${dataFonte}`, 42, 82);
 
   const img = await loadCanvasImage(p.foto);
-  const photoX = 120, photoY = 105, photoW = 480, photoH = 420;
+  const photoX = 145, photoY = 100, photoW = 430, photoH = 360;
   ctx.fillStyle = '#e5e7eb';
   ctx.fillRect(photoX, photoY, photoW, photoH);
   if (img) {
@@ -2109,53 +2115,53 @@ async function gerarPessoaShareCard(p) {
     ctx.fillText('SEM FOTO', 174, 330);
   }
   ctx.fillStyle = 'rgba(0,0,0,.65)';
-  ctx.fillRect(420, 488, 180, 37);
+  ctx.fillRect(395, 423, 180, 37);
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 18px Arial';
-  ctx.fillText(`Foto: ${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : dataFonte}`, 432, 512);
+  ctx.fillText(`Foto: ${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : dataFonte}`, 407, 447);
 
   ctx.fillStyle = '#111827';
   ctx.font = 'bold 28px Arial';
   ctx.textAlign = 'center';
-  drawWrappedText(ctx, (p.nome || 'SEM NOME').toUpperCase(), 360, 565, 640, 31, 2);
+  drawWrappedText(ctx, (p.nome || 'SEM NOME').toUpperCase(), 360, 505, 640, 31, 2);
   ctx.textAlign = 'left';
 
-  drawField(ctx, 'RG', p.rg || '-', 20, 595, 330, 86);
-  drawField(ctx, 'Situacao', situacao.label, 350, 595, 350, 86, situacao.color);
-  drawField(ctx, 'CPF', p.cpf || '-', 20, 681, 330, 76);
-  drawField(ctx, 'Nascimento / Idade', [fmtDate(p.nascimento), fmtAge(p.nascimento)].filter(Boolean).join(' - ') || '-', 350, 681, 350, 76);
+  drawField(ctx, 'RG', p.rg || '-', 20, 545, 330, 78);
+  drawField(ctx, 'Situacao', situacao.label, 350, 545, 350, 78, situacao.color);
+  drawField(ctx, 'CPF', p.cpf || '-', 20, 623, 330, 74);
+  drawField(ctx, 'Nascimento / Idade', [fmtDate(p.nascimento), fmtAge(p.nascimento)].filter(Boolean).join(' - ') || '-', 350, 623, 350, 74);
 
   ctx.strokeStyle = '#d1d5db';
-  ctx.strokeRect(20, 757, 680, 96);
+  ctx.strokeRect(20, 697, 680, 170);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Observacoes operacionais', 30, 782);
+  ctx.fillText('Observacoes operacionais', 30, 724);
   ctx.fillStyle = '#111827';
-  ctx.font = '22px Arial';
-  drawWrappedText(ctx, getPessoaObsShare(p), 30, 812, 660, 25, 3);
+  ctx.font = '20px Arial';
+  drawWrappedText(ctx, getPessoaObsShare(p), 30, 754, 660, 23, 5);
 
   ctx.strokeStyle = '#d1d5db';
-  ctx.strokeRect(20, 853, 680, 82);
+  ctx.strokeRect(20, 867, 680, 120);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Endereco', 30, 878);
+  ctx.fillText('Endereco principal', 30, 894);
   ctx.fillStyle = '#111827';
-  ctx.font = '22px Arial';
-  drawWrappedText(ctx, getPessoaEnderecoShare(p), 30, 908, 660, 25, 2);
+  ctx.font = '20px Arial';
+  drawWrappedText(ctx, getPessoaEnderecoShare(p), 30, 924, 660, 23, 3);
 
   ctx.strokeStyle = '#d1d5db';
-  ctx.strokeRect(20, 935, 680, 135);
+  ctx.strokeRect(20, 987, 680, 201);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Vinculos / possiveis enderecos de apoio', 30, 960);
+  ctx.fillText('Vinculos / possiveis enderecos de apoio', 30, 1014);
   ctx.fillStyle = '#111827';
   ctx.font = '20px Arial';
-  drawWrappedText(ctx, getPessoaVinculosShare(p), 30, 990, 660, 23, 4);
+  drawWrappedText(ctx, getPessoaVinculosShare(p), 30, 1044, 660, 23, 6);
 
   ctx.fillStyle = '#6b7280';
   ctx.font = '16px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`Fonte: BDIntel | Posicao em: ${dataFonte} as ${horaFonte}`, 360, 1110);
+  ctx.fillText(`Fonte: BDIntel | Posicao em: ${dataFonte} as ${horaFonte}`, 360, 1232);
   ctx.textAlign = 'left';
   return canvas.toDataURL('image/png');
 }
