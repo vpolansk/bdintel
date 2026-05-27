@@ -1607,6 +1607,7 @@ function openModal_veiculo(id) {
     const el = document.getElementById('mv-' + f);
     if (el) el.value = '';
   });
+  document.getElementById('mv-share-local').value = '';
   ['data','hora','local','lat','lng'].forEach(f => {
     const el = document.getElementById('mv-evento-' + f);
     if (el) el.value = '';
@@ -1628,6 +1629,7 @@ function openModal_veiculo(id) {
     renderCondutorOptions(v.condutorId || '');
     document.getElementById('mv-foto').value = v.foto||'';
     document.getElementById('mv-obs').value = v.obs||'';
+    document.getElementById('mv-share-local').value = v.infoCompartilhamento || v.localRelacionado || '';
     setVeiculoFotoPreview(v.foto || '');
   }
   openOv('ov-veiculo');
@@ -1685,6 +1687,7 @@ function saveVeiculo() {
     condutorId: document.getElementById('mv-condutor-id').value,
     foto: document.getElementById('mv-foto').value.trim(),
     obs: document.getElementById('mv-obs').value.trim(),
+    infoCompartilhamento: document.getElementById('mv-share-local').value.trim(),
   };
   if (editingVeiculoId) {
     const idx = DB.veiculos.findIndex(x => x.id === editingVeiculoId);
@@ -2419,6 +2422,8 @@ function getVeiculoSituacao(v) {
 }
 
 function getVeiculoLocalShare(v) {
+  const infoLivre = (v.infoCompartilhamento || v.localRelacionado || '').trim();
+  if (infoLivre) return infoLivre;
   const ev = (v.eventos || []).slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))[0];
   if (ev && ev.local) return ev.local;
   const placa = normalizarPlaca(v.placa);
@@ -2498,7 +2503,7 @@ async function gerarVeiculoShareCard(v) {
   ctx.strokeRect(20, 781, 680, 96);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Local relacionado', 30, 808);
+  ctx.fillText('Informacoes operacionais', 30, 808);
   ctx.fillStyle = '#111827';
   ctx.font = '20px Arial';
   drawWrappedText(ctx, getVeiculoLocalShare(v), 30, 838, 660, 23, 2);
