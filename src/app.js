@@ -5,6 +5,8 @@ let eventoTargetId = null;
 let confirmacaoTargetId = null;
 let vinculoTargetId = null;
 let andamentoOcorrenciaTargetId = null;
+let shareCardPessoaId = null;
+let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
 let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, residencia: true, local_poi: true };
@@ -177,6 +179,7 @@ function renderPessoaDetail() {
         <div class="detail-meta" style="margin-top:6px">${[age, p.bairro||p.cidade, `${eventos} ocorrência(s)`, `${vinculos} vínculo(s)`].filter(Boolean).join(' · ')}</div>
       </div>
       <div class="detail-head-actions">
+        <button class="btn sm" onclick="openPessoaShareCard('${p.id}')">COMPARTILHAR</button>
         <button class="btn sm primary" onclick="openModal_confirmacao('${p.id}')">✓ CONFIRMAR</button>
         <button class="btn sm" onclick="openModal_pessoa('${p.id}')">✏ EDITAR</button>
         <button class="btn sm danger" onclick="deletePessoa('${p.id}')">✕</button>
@@ -1955,6 +1958,226 @@ function scrollDetailIntoView(id) {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+}
+
+function getPessoaSituacao(p) {
+  const statuses = Array.isArray(p.status) ? p.status : [p.status || 'cadastrado'];
+  if (statuses.includes('procurado')) return { label: 'PROCURADO(A)', color: '#b91c1c' };
+  if (statuses.includes('preso')) return { label: 'PRESO(A)', color: '#6d28d9' };
+  if (statuses.includes('liberdade')) return { label: 'EM LIBERDADE', color: '#15803d' };
+  if (statuses.includes('abordado')) return { label: 'ABORDADO(A)', color: '#1d4ed8' };
+  if (statuses.includes('confirmado')) return { label: 'CONFIRMADO(A)', color: '#15803d' };
+  return { label: 'CADASTRADO(A)', color: '#374151' };
+}
+
+function getPessoaEnderecoShare(p) {
+  const numero = p.numero || extrairNumeroEndereco(p.endereco || '');
+  const rua = p.endereco || '';
+  const partes = [
+    rua && numero && !rua.includes(numero) ? `${rua}, ${numero}` : rua,
+    p.bairro,
+    p.cidade,
+    p.estado,
+  ].filter(Boolean);
+  return partes.join(' - ') || 'Endereco nao informado';
+}
+
+function getPessoaObsShare(p) {
+  const obs = (p.obs || '').trim();
+  if (obs) return obs;
+  const eventos = (p.eventos || [])
+    .slice()
+    .sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))
+    .slice(0, 4)
+    .map(ev => [tipoLabel(ev.tipo), ev.historico || ev.resultado || ev.local].filter(Boolean).join(': '));
+  return eventos.join('\n') || 'Sem observacoes operacionais cadastradas.';
+}
+
+function loadCanvasImage(src) {
+  return new Promise(resolve => {
+    if (!src) { resolve(null); return; }
+    if (/^https?:/i.test(src)) {
+      try {
+        const url = new URL(src);
+        if (url.origin !== window.location.origin) { resolve(null); return; }
+      } catch (e) {
+        resolve(null); return;
+      }
+    }
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+  const words = String(text || '').replace(/\s+/g, ' ').trim().split(' ');
+  let line = '';
+  let lines = 0;
+  for (let i = 0; i < words.length; i++) {
+    const test = line ? `${line} ${words[i]}` : words[i];
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      y += lineHeight;
+      lines++;
+      line = words[i];
+      if (lines >= maxLines - 1) break;
+    } else {
+      line = test;
+    }
+  }
+  if (line && lines < maxLines) {
+    const remaining = words.slice(words.indexOf(line.split(' ')[0]) + line.split(' ').length).length;
+    ctx.fillText(remaining > 0 && lines === maxLines - 1 ? line.replace(/.{3}$/, '...') : line, x, y);
+    y += lineHeight;
+  }
+  return y;
+}
+
+function drawField(ctx, label, value, x, y, w, h, valueColor = '#111827') {
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, w, h);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '20px Arial';
+  ctx.fillText(label, x + 10, y + 24);
+  ctx.fillStyle = valueColor;
+  ctx.font = 'bold 24px Arial';
+  drawWrappedText(ctx, value || '-', x + 10, y + 52, w - 20, 26, 2);
+}
+
+async function gerarPessoaShareCard(p) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 720;
+  canvas.height = 1040;
+  const ctx = canvas.getContext('2d');
+  const situacao = getPessoaSituacao(p);
+  const hoje = new Date();
+  const dataFonte = hoje.toLocaleDateString('pt-BR');
+  const horaFonte = hoje.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(20, 20, 680, 930);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20, 20, 680, 930);
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText('BDIntel', 42, 58);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '16px Arial';
+  ctx.fillText(`Cartao operacional - ${dataFonte}`, 42, 82);
+
+  const img = await loadCanvasImage(p.foto);
+  const photoX = 120, photoY = 105, photoW = 480, photoH = 420;
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillRect(photoX, photoY, photoW, photoH);
+  if (img) {
+    const scale = Math.max(photoW / img.width, photoH / img.height);
+    const sw = photoW / scale;
+    const sh = photoH / scale;
+    const sx = (img.width - sw) / 2;
+    const sy = (img.height - sh) / 2;
+    try {
+      ctx.drawImage(img, sx, sy, sw, sh, photoX, photoY, photoW, photoH);
+    } catch (e) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = 'bold 96px Arial';
+      ctx.fillText('SEM FOTO', 160, 330);
+    }
+  } else {
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = 'bold 72px Arial';
+    ctx.fillText('SEM FOTO', 174, 330);
+  }
+  ctx.fillStyle = 'rgba(0,0,0,.65)';
+  ctx.fillRect(420, 488, 180, 37);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 18px Arial';
+  ctx.fillText(`Foto: ${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : dataFonte}`, 432, 512);
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 28px Arial';
+  ctx.textAlign = 'center';
+  drawWrappedText(ctx, (p.nome || 'SEM NOME').toUpperCase(), 360, 565, 640, 31, 2);
+  ctx.textAlign = 'left';
+
+  drawField(ctx, 'RG', p.rg || '-', 20, 595, 330, 86);
+  drawField(ctx, 'Situacao', situacao.label, 350, 595, 350, 86, situacao.color);
+  drawField(ctx, 'CPF', p.cpf || '-', 20, 681, 330, 76);
+  drawField(ctx, 'Nascimento / Idade', [fmtDate(p.nascimento), fmtAge(p.nascimento)].filter(Boolean).join(' - ') || '-', 350, 681, 350, 76);
+
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(20, 757, 680, 96);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '20px Arial';
+  ctx.fillText('Observacoes operacionais', 30, 782);
+  ctx.fillStyle = '#111827';
+  ctx.font = '22px Arial';
+  drawWrappedText(ctx, getPessoaObsShare(p), 30, 812, 660, 25, 3);
+
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(20, 853, 680, 97);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '20px Arial';
+  ctx.fillText('Endereco', 30, 878);
+  ctx.fillStyle = '#111827';
+  ctx.font = '22px Arial';
+  drawWrappedText(ctx, getPessoaEnderecoShare(p), 30, 908, 660, 25, 2);
+
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Fonte: BDIntel | Posicao em: ${dataFonte} as ${horaFonte}`, 360, 990);
+  ctx.textAlign = 'left';
+  return canvas.toDataURL('image/png');
+}
+
+async function openPessoaShareCard(id) {
+  const p = DB.pessoas.find(x => x.id === id);
+  if (!p) return;
+  shareCardPessoaId = id;
+  toast('Gerando cartao...');
+  shareCardDataUrl = await gerarPessoaShareCard(p);
+  document.getElementById('share-card-img').src = shareCardDataUrl;
+  openOv('ov-share-card');
+}
+
+function baixarPessoaShareCard() {
+  if (!shareCardDataUrl) return;
+  const p = DB.pessoas.find(x => x.id === shareCardPessoaId);
+  const nome = (p && p.nome ? p.nome : 'bdintel').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+  const a = document.createElement('a');
+  a.href = shareCardDataUrl;
+  a.download = `bdintel-${nome || 'cartao'}.png`;
+  a.click();
+}
+
+async function compartilharPessoaShareCard() {
+  if (!shareCardDataUrl) return;
+  try {
+    const p = DB.pessoas.find(x => x.id === shareCardPessoaId);
+    const blob = await (await fetch(shareCardDataUrl)).blob();
+    const file = new File([blob], 'bdintel-cartao.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+      await navigator.share({
+        title: 'BDIntel - Cartao operacional',
+        text: p ? `BDIntel - ${p.nome}` : 'BDIntel - Cartao operacional',
+        files: [file],
+      });
+    } else {
+      baixarPessoaShareCard();
+      toast('Compartilhamento direto indisponivel. Imagem baixada.');
+    }
+  } catch (e) {
+    baixarPessoaShareCard();
+    toast('Nao foi possivel compartilhar direto. Imagem baixada.', true);
+  }
 }
 
 function openPhotoViewer(id, type = 'pessoa') {

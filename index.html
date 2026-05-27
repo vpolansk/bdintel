@@ -759,6 +759,23 @@
   </div>
 </div>
 
+<div class="overlay" id="ov-share-card">
+  <div class="modal share-modal">
+    <div class="modal-hd">
+      <span class="modal-title">CARTAO OPERACIONAL</span>
+      <button class="modal-close" onclick="closeOv('ov-share-card')">✕</button>
+    </div>
+    <div class="modal-body share-body">
+      <img id="share-card-img" class="share-card-img" alt="Cartao operacional para compartilhamento">
+      <div class="fhint">Revise a imagem antes de enviar. O compartilhamento usa apenas os dados resumidos deste cadastro.</div>
+    </div>
+    <div class="modal-ft" style="flex-wrap:wrap">
+      <button class="btn" onclick="baixarPessoaShareCard()">BAIXAR IMAGEM</button>
+      <button class="btn primary" onclick="compartilharPessoaShareCard()">COMPARTILHAR</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="ov-photo">
   <div class="photo-viewer">
     <button class="modal-close photo-close" onclick="closeOv('ov-photo')">✕</button>

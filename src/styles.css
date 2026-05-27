@@ -884,6 +884,7 @@ header {
 }
 .modal.wide { width: 780px; }
 .modal.narrow { width: 460px; }
+.modal.share-modal { width: min(94vw, 520px); }
 
 .modal-hd {
   padding: 14px 18px;
@@ -1039,6 +1040,22 @@ header {
   min-height: 0;
   object-fit: contain;
   background: #000;
+}
+
+.share-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  background: #0f1118;
+}
+.share-card-img {
+  width: min(100%, 360px);
+  max-height: 68vh;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--border2);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
 }
 
 /* ── TOAST ── */
