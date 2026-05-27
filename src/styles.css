@@ -298,6 +298,7 @@ header {
 .chip.on-liberdade { border-color: var(--green2);  color: var(--green3); }
 .chip.on-preso     { border-color: var(--purple2); color: var(--purple3); }
 .chip.on-procurado { border-color: var(--red2);    color: var(--red3); }
+.chip.on-foragido  { border-color: var(--red2);    color: var(--red3); }
 .chip.on-conduzido { border-color: var(--yellow2); color: var(--yellow3); }
 .chip.on-testemunha{ border-color: var(--purple2); color: var(--purple3); }
 .chip.on-vitima    { border-color: var(--green2);  color: var(--green3); }
@@ -380,6 +381,7 @@ header {
 .b-liberdade { color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.1); }
 .b-preso     { color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.12); }
 .b-procurado { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.14); }
+.b-foragido  { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.14); }
 .b-conduzido { color: var(--yellow3); border-color: var(--yellow2); background: rgba(192,160,32,.08); }
 .b-testemunha{ color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.08); }
 .b-vitima    { color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.08); }

@@ -1962,6 +1962,7 @@ function scrollDetailIntoView(id) {
 
 function getPessoaSituacao(p) {
   const statuses = Array.isArray(p.status) ? p.status : [p.status || 'cadastrado'];
+  if (statuses.includes('foragido')) return { label: 'FORAGIDO(A)', color: '#b91c1c' };
   if (statuses.includes('procurado')) return { label: 'PROCURADO(A)', color: '#b91c1c' };
   if (statuses.includes('preso')) return { label: 'PRESO(A)', color: '#6d28d9' };
   if (statuses.includes('liberdade')) return { label: 'EM LIBERDADE', color: '#15803d' };
@@ -1991,6 +1992,18 @@ function getPessoaObsShare(p) {
     .slice(0, 4)
     .map(ev => [tipoLabel(ev.tipo), ev.historico || ev.resultado || ev.local].filter(Boolean).join(': '));
   return eventos.join('\n') || 'Sem observacoes operacionais cadastradas.';
+}
+
+function getPessoaVinculosShare(p) {
+  const linhas = [];
+  if ((p.vinculosInfo || '').trim()) linhas.push((p.vinculosInfo || '').trim());
+  (p.vinculos || []).forEach(vk => {
+    const outro = DB.pessoas.find(x => x.id === vk.pessoaId);
+    if (!outro) return;
+    const endereco = getPessoaEnderecoShare(outro);
+    linhas.push(`${vk.tipo}: ${outro.nome}${endereco ? ' - ' + endereco : ''}${vk.obs ? ' (' + vk.obs + ')' : ''}`);
+  });
+  return linhas.slice(0, 4).join('\n') || 'Sem vinculos ou enderecos alternativos cadastrados.';
 }
 
 function loadCanvasImage(src) {
@@ -2051,7 +2064,7 @@ function drawField(ctx, label, value, x, y, w, h, valueColor = '#111827') {
 async function gerarPessoaShareCard(p) {
   const canvas = document.createElement('canvas');
   canvas.width = 720;
-  canvas.height = 1040;
+  canvas.height = 1160;
   const ctx = canvas.getContext('2d');
   const situacao = getPessoaSituacao(p);
   const hoje = new Date();
@@ -2061,10 +2074,10 @@ async function gerarPessoaShareCard(p) {
   ctx.fillStyle = '#f3f4f6';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(20, 20, 680, 930);
+  ctx.fillRect(20, 20, 680, 1050);
   ctx.strokeStyle = '#cbd5e1';
   ctx.lineWidth = 2;
-  ctx.strokeRect(20, 20, 680, 930);
+  ctx.strokeRect(20, 20, 680, 1050);
 
   ctx.fillStyle = '#111827';
   ctx.font = 'bold 28px Arial';
@@ -2122,7 +2135,7 @@ async function gerarPessoaShareCard(p) {
   drawWrappedText(ctx, getPessoaObsShare(p), 30, 812, 660, 25, 3);
 
   ctx.strokeStyle = '#d1d5db';
-  ctx.strokeRect(20, 853, 680, 97);
+  ctx.strokeRect(20, 853, 680, 82);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
   ctx.fillText('Endereco', 30, 878);
@@ -2130,10 +2143,19 @@ async function gerarPessoaShareCard(p) {
   ctx.font = '22px Arial';
   drawWrappedText(ctx, getPessoaEnderecoShare(p), 30, 908, 660, 25, 2);
 
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(20, 935, 680, 135);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '20px Arial';
+  ctx.fillText('Vinculos / possiveis enderecos de apoio', 30, 960);
+  ctx.fillStyle = '#111827';
+  ctx.font = '20px Arial';
+  drawWrappedText(ctx, getPessoaVinculosShare(p), 30, 990, 660, 23, 4);
+
   ctx.fillStyle = '#6b7280';
   ctx.font = '16px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(`Fonte: BDIntel | Posicao em: ${dataFonte} as ${horaFonte}`, 360, 990);
+  ctx.fillText(`Fonte: BDIntel | Posicao em: ${dataFonte} as ${horaFonte}`, 360, 1110);
   ctx.textAlign = 'left';
   return canvas.toDataURL('image/png');
 }
