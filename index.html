@@ -252,13 +252,20 @@
   <div class="page" id="page-locais">
     <div class="list-panel">
       <div class="panel-header">
-        <div class="panel-title">Locais de Interesse</div>
+        <div class="panel-title">QTH / Geointeligencia</div>
         <div class="search-wrap">
           <span class="search-icon"></span>
-          <input type="text" id="locais-search" placeholder="Nome, bairro, tipo..." oninput="renderLocaisList()">
+          <input type="text" id="locais-search" placeholder="Nome, endereco, bairro, tipo..." oninput="renderLocaisList()">
         </div>
         <div style="margin-top:8px">
           <button class="btn primary sm" style="width:100%" onclick="openModal_local(null)">+ CADASTRAR LOCAL</button>
+        </div>
+        <div class="local-layer-filters">
+          <button class="local-layer-chip on" data-llf="local" onclick="toggleLocalLayer('local')">Locais</button>
+          <button class="local-layer-chip on" data-llf="residencia" onclick="toggleLocalLayer('residencia')">Residencias</button>
+          <button class="local-layer-chip on" data-llf="abordagem" onclick="toggleLocalLayer('abordagem')">Abordagens</button>
+          <button class="local-layer-chip on" data-llf="ocorrencia" onclick="toggleLocalLayer('ocorrencia')">Ocorrencias</button>
+          <button class="local-layer-chip on" data-llf="veiculo" onclick="toggleLocalLayer('veiculo')">Veiculos</button>
         </div>
       </div>
       <div class="scroll-list" id="locais-list"></div>

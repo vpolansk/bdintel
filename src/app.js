@@ -11,6 +11,7 @@ let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
 let mapFilters = { abordagem: true, prisao: true, averiguacao: true, crime_roubo: true, crime_furto: true, crime_furto_qualificado: true, crime_homicidio: true, crime_estupro: true, crime_estelionato: true, crime_roubo_residencia: true, crime_roubo_comercio: true, crime_roubo_pedestre: true, crime_furto_residencia: true, crime_furto_comercio: true, crime_furto_arrombamento: true, crime_trafico: true, crime_receptacao: true, crime_arma: true, crime_mandado: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, veic_clone: true, residencia: true, local_poi: true };
+let localLayerFilters = { local: true, residencia: true, abordagem: true, ocorrencia: true, veiculo: true };
 /* NAV / PAGES */
 
 
@@ -2146,29 +2147,30 @@ function saveLocal() {
   renderLocaisList();
   renderLocalDetail();
   renderMapMarkers();
-  document.getElementById('cnt-locais').textContent = DB.locais.length;
   toast('Local salvo.');
 }
 
 function renderLocaisList() {
   const q = document.getElementById('locais-search').value.toLowerCase().trim();
-  let list = DB.locais.filter(l => {
+  const all = getGeoLocais();
+  let list = all.filter(l => {
     if (!q) return true;
-    const informes = (l.informes || []).map(i => [i.tipo, i.texto].join(' ')).join(' ');
-    return [l.nome, l.tipo, l.endereco, l.obs, informes].join(' ').toLowerCase().includes(q);
+    const real = l.raw || DB.locais.find(x => x.id === l.refId);
+    const informes = real && Array.isArray(real.informes) ? real.informes.map(i => [i.tipo, i.texto].join(' ')).join(' ') : '';
+    return [l.nome, l.tipo, l.endereco, l.resumo, informes, l.layer].join(' ').toLowerCase().includes(q);
   });
-  document.getElementById('cnt-locais').textContent = DB.locais.length;
+  document.getElementById('cnt-locais').textContent = all.length;
   const el = document.getElementById('locais-list');
   if (!list.length) {
-    el.innerHTML = `<div class="empty-state">// NENHUM LOCAL CADASTRADO</div>`;
+    el.innerHTML = `<div class="empty-state">// NENHUM QTH ENCONTRADO</div>`;
     return;
   }
   el.innerHTML = list.map(l => `
-    <div class="local-card${selLocal===l.id?' sel':''}" onclick="selectLocal('${l.id}')">
-      <div class="local-icon">${localEmojis[l.tipo]||'LOC'}</div>
+    <div class="local-card${(selLocal===l.id || selLocal===l.refId)?' sel':''}" onclick="selectLocal('${l.id}')">
+      <div class="local-icon local-layer-${l.layer}">${l.icon || 'QTH'}</div>
       <div class="l-info">
         <div class="l-name">${l.nome}</div>
-        <div class="l-sub">${l.endereco||'-'}</div>
+        <div class="l-sub">${[l.tipo, l.endereco].filter(Boolean).join(' - ') || '-'}</div>
       </div>
     </div>`).join('');
 }
@@ -2237,8 +2239,146 @@ function getLocalDossie(l) {
   return { pessoas, veiculos, ocorrencias };
 }
 
+function getGeoLocais() {
+  const itens = [];
+  DB.locais.forEach(l => {
+    itens.push({
+      id: 'local:' + l.id,
+      source: 'local',
+      refId: l.id,
+      layer: 'local',
+      nome: l.nome || 'Local cadastrado',
+      tipo: localTipoLabel(l.tipo),
+      endereco: l.endereco || '',
+      lat: l.lat,
+      lng: l.lng,
+      data: '',
+      resumo: l.obs || '',
+      icon: localEmojis[l.tipo] || 'LOC',
+      raw: l,
+    });
+  });
+
+  DB.pessoas.forEach(p => {
+    if (p.lat && p.lng) {
+      itens.push({
+        id: 'residencia:' + p.id,
+        source: 'residencia',
+        refId: p.id,
+        layer: 'residencia',
+        nome: 'Residencia - ' + p.nome,
+        tipo: 'RESIDENCIA',
+        endereco: p.endereco || [p.bairro, p.cidade].filter(Boolean).join(' - '),
+        lat: p.lat,
+        lng: p.lng,
+        data: '',
+        resumo: [p.obs, p.vinculosInfo].filter(Boolean).join('\n'),
+        icon: 'CASA',
+        pessoaId: p.id,
+      });
+    }
+    (p.eventos || []).forEach((ev, idx) => {
+      if (!ev.lat || !ev.lng) return;
+      const layer = ['abordagem', 'averiguacao', 'conducao', 'prisao'].includes(ev.tipo) ? 'abordagem' : 'ocorrencia';
+      itens.push({
+        id: 'pevento:' + p.id + ':' + idx,
+        source: 'pessoa_evento',
+        refId: p.id,
+        layer,
+        nome: tipoLabel(ev.tipo || 'ocorrencia') + ' - ' + p.nome,
+        tipo: tipoLabel(ev.tipo || 'ocorrencia'),
+        endereco: ev.local || '',
+        lat: ev.lat,
+        lng: ev.lng,
+        data: ev.data || '',
+        resumo: ev.historico || ev.resultado || '',
+        icon: layer === 'abordagem' ? 'AB' : 'OC',
+        pessoaId: p.id,
+      });
+    });
+  });
+
+  (DB.ocorrencias || []).forEach(oc => {
+    if (!oc.lat || !oc.lng) return;
+    itens.push({
+      id: 'ocorrencia:' + oc.id,
+      source: 'ocorrencia',
+      refId: oc.id,
+      layer: 'ocorrencia',
+      nome: tipoLabel(oc.tipo || 'ocorrencia'),
+      tipo: 'OCORRENCIA',
+      endereco: oc.local || '',
+      lat: oc.lat,
+      lng: oc.lng,
+      data: oc.data || '',
+      resumo: oc.historico || '',
+      icon: 'OC',
+      ocorrenciaId: oc.id,
+    });
+  });
+
+  DB.veiculos.forEach(v => {
+    (v.eventos || []).forEach((ev, idx) => {
+      if (!ev.lat || !ev.lng) return;
+      const style = getEventoMapStyle(ev);
+      itens.push({
+        id: 'veiculo:' + v.id + ':' + idx,
+        source: 'veiculo_evento',
+        refId: v.id,
+        layer: 'veiculo',
+        nome: (v.placa || 'Veiculo') + ' - ' + (style.label || tipoLabel(ev.tipo || 'evento')),
+        tipo: 'VEICULO',
+        endereco: ev.local || '',
+        lat: ev.lat,
+        lng: ev.lng,
+        data: ev.data || '',
+        resumo: ev.historico || '',
+        icon: 'VEIC',
+        veiculoId: v.id,
+      });
+    });
+  });
+  return itens.filter(item => localLayerFilters[item.layer] !== false);
+}
+
+function getGeoLocalById(id) {
+  return getGeoLocais().find(x => x.id === id) || null;
+}
+
+function toggleLocalLayer(layer) {
+  localLayerFilters[layer] = !localLayerFilters[layer];
+  document.querySelectorAll('[data-llf]').forEach(btn => {
+    btn.classList.toggle('on', localLayerFilters[btn.dataset.llf] !== false);
+  });
+  renderLocaisList();
+  if (selLocal && !getGeoLocalById(selLocal) && !DB.locais.some(x => x.id === selLocal)) {
+    selLocal = null;
+    const detail = document.getElementById('local-detail');
+    detail.innerHTML = '<div class="blank-msg">// SELECIONE UM QTH</div>';
+    detail.classList.add('blank');
+  }
+}
+
+function getGeoLocalDossie(q) {
+  const probe = { nome: q.nome, endereco: q.endereco, lat: q.lat, lng: q.lng };
+  const base = getLocalDossie(probe);
+  if (q.pessoaId) {
+    const p = DB.pessoas.find(x => x.id === q.pessoaId);
+    if (p && !base.pessoas.some(x => x.id === p.id)) base.pessoas.unshift(p);
+  }
+  if (q.ocorrenciaId) {
+    const oc = (DB.ocorrencias || []).find(x => x.id === q.ocorrenciaId);
+    if (oc && !base.ocorrencias.some(x => x.id === oc.id)) base.ocorrencias.unshift(oc);
+  }
+  if (q.veiculoId) {
+    const v = DB.veiculos.find(x => x.id === q.veiculoId);
+    if (v && !base.veiculos.some(x => x.id === v.id)) base.veiculos.unshift(v);
+  }
+  return base;
+}
+
 function navegarLocal(id) {
-  const l = DB.locais.find(x => x.id === id);
+  const l = DB.locais.find(x => x.id === id) || getGeoLocalById(id);
   if (!l) return;
   const destino = l.lat && l.lng ? `${l.lat},${l.lng}` : (l.endereco || l.nome || '');
   if (destino) window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}`, '_blank');
@@ -2343,16 +2483,47 @@ function deleteLocalInforme(localId, informeId) {
 }
 
 function renderLocalDetail() {
-  const l = DB.locais.find(x => x.id === selLocal);
+  const realLocal = DB.locais.find(x => x.id === selLocal || ('local:' + x.id) === selLocal);
+  const qth = realLocal
+    ? (getGeoLocalById('local:' + realLocal.id) || {
+      id: 'local:' + realLocal.id,
+      layer: 'local',
+      nome: realLocal.nome,
+      tipo: localTipoLabel(realLocal.tipo),
+      endereco: realLocal.endereco,
+      lat: realLocal.lat,
+      lng: realLocal.lng,
+      resumo: realLocal.obs,
+      icon: localEmojis[realLocal.tipo] || 'LOC',
+      raw: realLocal,
+    })
+    : getGeoLocalById(selLocal);
   const el = document.getElementById('local-detail');
-  if (!l) { el.innerHTML = '<div class="blank-msg">// SELECIONE UM LOCAL</div>'; el.classList.add('blank'); return; }
+  if (!qth) { el.innerHTML = '<div class="blank-msg">// SELECIONE UM QTH</div>'; el.classList.add('blank'); return; }
   el.classList.remove('blank');
-  const risco = localRisco(l);
-  const dossie = getLocalDossie(l);
-  const midias = Array.isArray(l.midias) ? l.midias : [];
-  const informes = Array.isArray(l.informes)
-    ? l.informes.slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))
+  const l = realLocal || qth;
+  const isRealLocal = !!realLocal;
+  const risco = isRealLocal ? localRisco(realLocal) : {
+    label: ({ residencia: 'ALVO / RESIDENCIA', abordagem: 'ATIVIDADE TATICA', ocorrencia: 'EVENTO / OCORRENCIA', veiculo: 'EVENTO DE VEICULO' }[qth.layer] || 'QTH'),
+    cls: ({ residencia: 'risk-low', abordagem: 'risk-med', ocorrencia: 'risk-high', veiculo: 'risk-med' }[qth.layer] || 'risk-low'),
+  };
+  const dossie = isRealLocal ? getLocalDossie(realLocal) : getGeoLocalDossie(qth);
+  const midias = isRealLocal && Array.isArray(realLocal.midias) ? realLocal.midias : [];
+  const informes = isRealLocal && Array.isArray(realLocal.informes)
+    ? realLocal.informes.slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))
     : [];
+  const actionButtons = isRealLocal ? `
+          <button class="btn sm" onclick="addLocalInforme('${realLocal.id}')">+ INFORME</button>
+          <button class="btn sm primary" onclick="navegarLocal('${realLocal.id}')">NAVEGAR</button>
+          <button class="btn sm" onclick="addLocalMidia('${realLocal.id}')">NOVA MIDIA</button>
+          <button class="btn sm" onclick="openModal_local('${realLocal.id}')">EDITAR</button>
+          <button class="btn sm danger" onclick="deleteLocal('${realLocal.id}')">X</button>
+        ` : `
+          <button class="btn sm primary" onclick="navegarLocal('${qth.id}')">NAVEGAR</button>
+          ${qth.pessoaId ? `<button class="btn sm" onclick="goPage('pessoas');selectPessoa('${qth.pessoaId}')">ABRIR PESSOA</button>` : ''}
+          ${qth.ocorrenciaId ? `<button class="btn sm" onclick="goPage('ocorrencias');selectOcorrencia('${qth.ocorrenciaId}')">ABRIR OCORRENCIA</button>` : ''}
+          ${qth.veiculoId ? `<button class="btn sm" onclick="goPage('veiculos');selectVeiculo('${qth.veiculoId}')">ABRIR VEICULO</button>` : ''}
+        `;
 
   el.innerHTML = `
     <div class="detail-mobile-nav">
@@ -2361,26 +2532,22 @@ function renderLocalDetail() {
     <div class="local-dossier">
       <section class="local-card-panel local-qth">
         <div class="local-qth-main">
-          <div class="local-token">${localEmojis[l.tipo] || 'LOC'}</div>
+          <div class="local-token local-layer-${qth.layer}">${qth.icon || 'QTH'}</div>
           <div>
-            <div class="detail-name">${l.nome}</div>
-            <div class="detail-alcunha">${localTipoLabel(l.tipo)}</div>
-            <div class="detail-meta">${l.endereco || '-'}</div>
+            <div class="detail-name">${qth.nome}</div>
+            <div class="detail-alcunha">${qth.tipo}</div>
+            <div class="detail-meta">${qth.endereco || '-'}</div>
           </div>
         </div>
         <div class="local-actions">
           <span class="risk-badge ${risco.cls}">${risco.label}</span>
-          <button class="btn sm" onclick="addLocalInforme('${l.id}')">+ INFORME</button>
-          <button class="btn sm primary" onclick="navegarLocal('${l.id}')">NAVEGAR</button>
-          <button class="btn sm" onclick="addLocalMidia('${l.id}')">NOVA MIDIA</button>
-          <button class="btn sm" onclick="openModal_local('${l.id}')">EDITAR</button>
-          <button class="btn sm danger" onclick="deleteLocal('${l.id}')">X</button>
+          ${actionButtons}
         </div>
       </section>
 
       <section class="local-card-panel local-map-card">
         <div class="section-label">Mapa operacional</div>
-        ${l.lat && l.lng ? `<div id="local-minimap" class="local-big-map"></div>` : '<div class="empty-state">Sem coordenadas cadastradas</div>'}
+        ${qth.lat && qth.lng ? `<div id="local-minimap" class="local-big-map"></div>` : '<div class="empty-state">Sem coordenadas cadastradas</div>'}
       </section>
 
       <section class="local-card-panel">
@@ -2424,11 +2591,12 @@ function renderLocalDetail() {
 
       <section class="local-card-panel">
         <div class="section-label">Operacional</div>
-        <div class="ival local-obs">${l.obs || 'Sem observacoes operacionais cadastradas.'}</div>
+        <div class="ival local-obs">${(isRealLocal ? realLocal.obs : qth.resumo) || 'Sem observacoes operacionais cadastradas.'}</div>
         <div class="local-tags">
-          <span>${localTipoLabel(l.tipo)}</span>
+          <span>${qth.tipo}</span>
           <span>${risco.label}</span>
-          ${l.lat && l.lng ? '<span>COM GPS</span>' : '<span>SEM GPS</span>'}
+          ${qth.lat && qth.lng ? '<span>COM GPS</span>' : '<span>SEM GPS</span>'}
+          <span>CAMADA: ${qth.layer.toUpperCase()}</span>
         </div>
       </section>
 
@@ -2436,14 +2604,14 @@ function renderLocalDetail() {
         <details class="local-fold" open>
           <summary>Informes do local (${informes.length})</summary>
           <div class="local-informe-actions">
-            <button class="btn sm primary" onclick="addLocalInforme('${l.id}')">+ ADICIONAR INFORME</button>
+            ${isRealLocal ? `<button class="btn sm primary" onclick="addLocalInforme('${realLocal.id}')">+ ADICIONAR INFORME</button>` : '<span class="local-derived-note">QTH gerado automaticamente a partir de outro cadastro.</span>'}
           </div>
           <div class="local-informes-list">
             ${informes.length ? informes.map(info => `
               <div class="local-informe-card">
                 <div class="tl-local">${(info.tipo || 'informe').toUpperCase()} - ${fmtDate(info.data)}${info.hora ? ' - ' + info.hora : ''}</div>
                 <div class="tl-desc">${info.texto || '-'}</div>
-                <button class="btn sm danger" onclick="deleteLocalInforme('${l.id}','${info.id}')">EXCLUIR</button>
+                <button class="btn sm danger" onclick="deleteLocalInforme('${realLocal.id}','${info.id}')">EXCLUIR</button>
               </div>`).join('') : '<div class="empty-state">Nenhum informe registrado ainda</div>'}
           </div>
         </details>
@@ -2453,21 +2621,22 @@ function renderLocalDetail() {
         <details class="local-fold" open>
           <summary>Midia (${midias.length})</summary>
           <div class="local-media-grid">
-            ${midias.length ? midias.map(m => renderLocalMidiaThumb(l, m)).join('') + `<button class="local-media-add" onclick="addLocalMidia('${l.id}')">+ ADICIONAR MAIS</button>` : `<div class="local-media-empty">SEM FOTO</div><button class="local-media-add" onclick="addLocalMidia('${l.id}')">ADICIONAR MIDIA</button>`}
+            ${isRealLocal ? (midias.length ? midias.map(m => renderLocalMidiaThumb(realLocal, m)).join('') + `<button class="local-media-add" onclick="addLocalMidia('${realLocal.id}')">+ ADICIONAR MAIS</button>` : `<div class="local-media-empty">SEM FOTO</div><button class="local-media-add" onclick="addLocalMidia('${realLocal.id}')">ADICIONAR MIDIA</button>`) : '<div class="local-media-empty">MIDIA DISPONIVEL NO CADASTRO DE ORIGEM</div>'}
           </div>
         </details>
       </section>
     </div>
   `;
 
-  if (l.lat && l.lng) {
+  if (qth.lat && qth.lng) {
     setTimeout(() => {
       if (typeof window.L === 'undefined') return;
       const mapEl = document.getElementById('local-minimap');
       if (!mapEl) return;
-      const mm = window.L.map('local-minimap', { zoomControl: true }).setView([l.lat, l.lng], 15);
+      const mm = window.L.map('local-minimap', { zoomControl: true }).setView([qth.lat, qth.lng], 15);
       window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mm);
-      mkIcon('#a060f0', mm, [l.lat, l.lng], l.nome);
+      const color = { local: '#a060f0', residencia: '#3b82f6', abordagem: '#f59e0b', ocorrencia: '#ef4444', veiculo: '#22c55e' }[qth.layer] || '#a060f0';
+      mkIcon(color, mm, [qth.lat, qth.lng], qth.nome);
     }, 100);
   }
 }
@@ -2480,7 +2649,6 @@ function deleteLocal(id) {
   renderMapMarkers();
   document.getElementById('local-detail').innerHTML = '<div class="blank-msg">// SELECIONE UM LOCAL</div>';
   document.getElementById('local-detail').classList.add('blank');
-  document.getElementById('cnt-locais').textContent = DB.locais.length;
   toast('Local excluído.');
 }
 
