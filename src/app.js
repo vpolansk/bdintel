@@ -9,7 +9,7 @@ let shareCardPessoaId = null;
 let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
-let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, residencia: true, local_poi: true };
+let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, residencia: true, local_poi: true };
 /* ══════════════════════════════════════════════════════════════
    NAV / PAGES
 ══════════════════════════════════════════════════════════════ */
@@ -93,6 +93,14 @@ function voltarListaPessoas() {
   document.getElementById('page-pessoas').classList.remove('mobile-detail-open');
   requestAnimationFrame(() => {
     const list = document.getElementById('pessoas-list');
+    if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function voltarLista(pageId, listId) {
+  document.getElementById(pageId).classList.remove('mobile-detail-open');
+  requestAnimationFrame(() => {
+    const list = document.getElementById(listId);
     if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 }
@@ -299,7 +307,8 @@ function renderDTab() {
             <div class="avatar" style="width:34px;height:34px;font-size:14px">${fotoHtml}</div>
             <div class="vc-info">
               <div class="vc-rel">${vk.tipo}</div>
-              <div class="vc-name">${outroNome}</div>
+              <div class="vc-name">${outro ? outroNome : (vk.nome || outroNome)}</div>
+              ${vk.endereco?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.endereco}</div>`:''}
               ${vk.obs?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${vk.obs}</div>`:''}
             </div>
             <button class="btn sm danger" onclick="event.stopPropagation();deleteVinculo('${p.id}',${i})">✕</button>
@@ -401,8 +410,36 @@ function previewFotoUrl() {
   el.innerHTML = url ? `<img src="${url}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivíduo')" title="Clique para ampliar" onerror="this.parentElement.innerHTML='👤'+overlay">${overlay}` : `👤${overlay}`;
 }
 
-function previewFotoFile(input) {
+function resizeImageFile(file, maxSize = 1280, quality = 0.82) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => resolve(e.target.result);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+}
+
+async function previewFotoFile(input) {
   if (!input.files || !input.files[0]) return;
+  const compressed = await resizeImageFile(input.files[0]);
+  if (compressed) {
+    document.getElementById('mp-foto').value = compressed;
+    const overlay = `<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);font-size:9px;font-family:var(--font-mono);text-align:center;padding:2px;color:var(--accent);letter-spacing:1px">FOTO</div>`;
+    document.getElementById('m-pessoa-fotoprev').innerHTML = `<img src="${compressed}" onclick="event.stopPropagation();openPhotoViewerFromSrc(document.getElementById('mp-foto').value.trim(),'Foto do indivíduo')" title="Clique para ampliar">${overlay}`;
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('mp-foto').value = e.target.result;
@@ -430,8 +467,14 @@ function previewVeiculoFotoUrl() {
   setVeiculoFotoPreview(url);
 }
 
-function previewVeiculoFotoFile(input) {
+async function previewVeiculoFotoFile(input) {
   if (!input.files || !input.files[0]) return;
+  const compressed = await resizeImageFile(input.files[0]);
+  if (compressed) {
+    document.getElementById('mv-foto').value = compressed;
+    setVeiculoFotoPreview(compressed);
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('mv-foto').value = e.target.result;
@@ -674,9 +717,14 @@ function openModal_confirmacao(pessoaId) {
   openOv('ov-confirmar');
 }
 
-function previewConfirmacaoFotoFile(input) {
+async function previewConfirmacaoFotoFile(input) {
   const file = input.files && input.files[0];
   if (!file) return;
+  const compressed = await resizeImageFile(file);
+  if (compressed) {
+    document.getElementById('cf-foto').value = compressed;
+    return;
+  }
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('cf-foto').value = e.target.result;
@@ -1248,6 +1296,42 @@ function syncOcorrenciaComPessoas(oc) {
   });
 }
 
+function normalizarPlaca(valor) {
+  return String(valor || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function primeiraPlacaTexto(texto) {
+  const match = String(texto || '').toUpperCase().match(/[A-Z]{3}\s*[0-9][A-Z0-9]\s*[0-9]{2}/);
+  return match ? normalizarPlaca(match[0]) : '';
+}
+
+function syncOcorrenciaComVeiculo(oc) {
+  const placa = primeiraPlacaTexto(oc.veiculos);
+  if (!placa) return;
+  const v = DB.veiculos.find(x => normalizarPlaca(x.placa) === placa);
+  if (!v) return;
+  if (!Array.isArray(v.eventos)) v.eventos = [];
+  v.eventos = v.eventos.filter(ev => ev.ocorrenciaId !== oc.id);
+  const isRouboFurto = oc.tipo === 'roubo_veiculo' || oc.tipo === 'furto_veiculo';
+  const isRecuperacao = oc.tipo === 'recuperacao_veiculo';
+  if (isRouboFurto) v.status = oc.tipo === 'roubo_veiculo' ? 'roubado' : 'furtado';
+  if (isRecuperacao) v.status = 'recuperado';
+  if (isRouboFurto || isRecuperacao) {
+    v.eventos.push({
+      id: uid(),
+      tipo: oc.tipo,
+      data: oc.data,
+      hora: oc.hora,
+      local: oc.local,
+      lat: oc.lat,
+      lng: oc.lng,
+      ba: oc.ba,
+      historico: oc.historico,
+      ocorrenciaId: oc.id,
+    });
+  }
+}
+
 function saveOcorrencia() {
   const local = document.getElementById('oc-local').value.trim();
   const historico = document.getElementById('oc-historico').value.trim();
@@ -1280,6 +1364,7 @@ function saveOcorrencia() {
     DB.ocorrencias.push(data);
   }
   syncOcorrenciaComPessoas(data);
+  syncOcorrenciaComVeiculo(data);
   selOcorrencia = data.id;
   saveDB();
   closeOv('ov-ocorrencia');
@@ -1305,10 +1390,13 @@ function deleteOcorrencia(id) {
 function openModal_vinculo(pessoaId) {
   vinculoTargetId = pessoaId;
   const sel = document.getElementById('vk-pessoa');
-  sel.innerHTML = DB.pessoas.filter(p => p.id !== pessoaId)
+  sel.innerHTML = ['<option value="">-- vinculo rapido / sem cadastro --</option>'].concat(DB.pessoas.filter(p => p.id !== pessoaId)
     .map(p => `<option value="${p.id}">${p.nome}${p.alcunha?' ("'+p.alcunha+'")':''}</option>`)
+  )
     .join('');
   document.getElementById('vk-tipo').selectedIndex = 0;
+  document.getElementById('vk-nome').value = '';
+  document.getElementById('vk-endereco').value = '';
   document.getElementById('vk-obs').value = '';
   openOv('ov-vinculo');
 }
@@ -1316,11 +1404,21 @@ function openModal_vinculo(pessoaId) {
 function saveVinculo() {
   const pessoaId = document.getElementById('vk-pessoa').value;
   const tipo = document.getElementById('vk-tipo').value;
+  const nome = document.getElementById('vk-nome').value.trim();
+  const endereco = document.getElementById('vk-endereco').value.trim();
   const obs = document.getElementById('vk-obs').value.trim();
   const p = DB.pessoas.find(x => x.id === vinculoTargetId);
   if (!p) return;
   if (!p.vinculos) p.vinculos = [];
-  p.vinculos.push({ pessoaId, tipo, obs });
+  const linkId = uid();
+  p.vinculos.push({ id: linkId, pessoaId, nome, endereco, tipo, obs });
+  if (pessoaId) {
+    const outro = DB.pessoas.find(x => x.id === pessoaId);
+    if (outro) {
+      if (!outro.vinculos) outro.vinculos = [];
+      outro.vinculos.push({ id: linkId, pessoaId: p.id, nome: p.nome, endereco: getPessoaEnderecoShare(p), tipo, obs });
+    }
+  }
   saveDB();
   closeOv('ov-vinculo');
   renderPessoaDetail();
@@ -1330,7 +1428,11 @@ function saveVinculo() {
 function deleteVinculo(pessoaId, idx) {
   const p = DB.pessoas.find(x => x.id === pessoaId);
   if (!p) return;
-  p.vinculos.splice(idx, 1);
+  const removido = p.vinculos.splice(idx, 1)[0];
+  if (removido && removido.id && removido.pessoaId) {
+    const outro = DB.pessoas.find(x => x.id === removido.pessoaId);
+    if (outro && Array.isArray(outro.vinculos)) outro.vinculos = outro.vinculos.filter(v => v.id !== removido.id);
+  }
   saveDB();
   renderPessoaDetail();
   toast('Vínculo excluído.');
@@ -1377,6 +1479,12 @@ function getEventoGravidade(ev) {
 }
 
 function getEventoMapStyle(ev) {
+  if (ev.tipo === 'furto_veiculo' || ev.tipo === 'roubo_veiculo') {
+    return { key: 'veic_roubo', color: 'var(--pin-alta)', label: ev.tipo === 'roubo_veiculo' ? 'ROUBO DE VEICULO' : 'FURTO DE VEICULO' };
+  }
+  if (ev.tipo === 'recuperacao_veiculo') {
+    return { key: 'veic_recuperado', color: 'var(--pin-baixa)', label: 'RECUPERACAO DE VEICULO' };
+  }
   if (ev.tipo === 'abordagem' && !ev.gravidade) {
     return { key: 'abordagem', color: 'var(--pin-abord)', label: 'ABORDAGEM' };
   }
@@ -1436,6 +1544,21 @@ function renderMapMarkers() {
       .bindTooltip(`<b>${tipoLabel(oc.tipo || 'ocorrencia')}</b><br>${style.label} · ${fmtDate(oc.data)}<br>${pessoas.length ? pessoas.map(p => p.nome).join(', ') : 'Sem pessoa vinculada'}<br>📍 ${oc.local}`, { direction:'top' })
       .on('click', () => { goPage('ocorrencias'); selectOcorrencia(oc.id); })
       .addTo(mapMarkers);
+  });
+
+  DB.veiculos.forEach(v => {
+    (v.eventos || []).forEach(ev => {
+      if (!ev.lat || !ev.lng) return;
+      if (!inDateRange(ev.data)) return;
+      const style = getEventoMapStyle(ev);
+      if (!mapFilters[style.key]) return;
+      const color = style.color;
+      const icon = window.L.divIcon({ className:'', html:`<div style="width:13px;height:13px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.55);box-shadow:0 0 7px ${color}80"></div>`, iconSize:[13,13], iconAnchor:[6,6] });
+      window.L.marker([ev.lat, ev.lng], { icon })
+        .bindTooltip(`<b>${v.placa}</b><br>${style.label} · ${fmtDate(ev.data)}<br>${ev.local || ''}`, { direction:'top' })
+        .on('click', () => { goPage('veiculos'); selectVeiculo(v.id); })
+        .addTo(mapMarkers);
+    });
   });
 
   // locais de interesse
@@ -1563,6 +1686,7 @@ function renderVeiculosList() {
 
 function selectVeiculo(id) {
   selVeiculo = id;
+  if (isMobileLayout()) document.getElementById('page-veiculos').classList.add('mobile-detail-open');
   renderVeiculosList();
   renderVeiculoDetail();
   scrollDetailIntoView('veiculo-detail');
@@ -1582,6 +1706,9 @@ function renderVeiculoDetail() {
   const condutorVinculado = DB.pessoas.find(p => p.id === v.condutorId);
 
   el.innerHTML = `
+    <div class="detail-mobile-nav">
+      <button class="btn mobile-back" onclick="voltarLista('page-veiculos','veiculos-list')">VOLTAR A LISTA</button>
+    </div>
     <div class="detail-head" style="align-items:center">
       <div>
         <div class="placa" style="font-size:22px;padding:8px 16px;letter-spacing:4px">${v.placa}</div>
@@ -1606,6 +1733,16 @@ function renderVeiculoDetail() {
       </div>
       ${v.foto ? `<div class="info-section"><div class="section-label">Foto</div><img src="${v.foto}" onclick="openPhotoViewer('${v.id}','veiculo')" title="Clique para ampliar" style="max-height:160px;border:1px solid var(--border);object-fit:cover;cursor:zoom-in" onerror="this.style.display='none'"></div>` : ''}
       ${v.obs ? `<div class="info-section"><div class="section-label">Observações</div><div class="ival" style="white-space:pre-wrap">${v.obs}</div></div>` : ''}
+      ${Array.isArray(v.eventos) && v.eventos.length ? `
+        <div class="info-section">
+          <div class="section-label">Linha do tempo do veiculo</div>
+          ${(v.eventos || []).slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||''))).map(ev => `
+            <div class="tl-card" style="margin-bottom:8px">
+              <div class="tl-local">${tipoLabel(ev.tipo)} - ${fmtDate(ev.data)}${ev.hora ? ' - ' + ev.hora : ''}</div>
+              <div class="tl-desc">${ev.local || '-'}${ev.ba ? ' | BA/BO: ' + ev.ba : ''}</div>
+              ${ev.historico ? `<div class="tl-desc">${ev.historico}</div>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
       ${relacionados.length ? `
         <div class="info-section">
           <div class="section-label">Pessoas Vinculadas (${relacionados.length})</div>
@@ -1707,6 +1844,7 @@ function renderLocaisList() {
 
 function selectLocal(id) {
   selLocal = id;
+  if (isMobileLayout()) document.getElementById('page-locais').classList.add('mobile-detail-open');
   renderLocaisList();
   renderLocalDetail();
   scrollDetailIntoView('local-detail');
@@ -1719,6 +1857,9 @@ function renderLocalDetail() {
   el.classList.remove('blank');
 
   el.innerHTML = `
+    <div class="detail-mobile-nav">
+      <button class="btn mobile-back" onclick="voltarLista('page-locais','locais-list')">VOLTAR A LISTA</button>
+    </div>
     <div class="detail-head">
       <div style="font-size:36px">${localEmojis[l.tipo]||'📌'}</div>
       <div class="detail-head-info">
@@ -1973,12 +2114,11 @@ function getPessoaSituacao(p) {
 
 function getPessoaEnderecoShare(p) {
   const numero = p.numero || extrairNumeroEndereco(p.endereco || '');
-  const rua = p.endereco || '';
+  let rua = (p.endereco || '').split(',').slice(0, 2).join(',').trim();
   const partes = [
     rua && numero && !rua.includes(numero) ? `${rua}, ${numero}` : rua,
     p.bairro,
     p.cidade,
-    p.estado,
   ].filter(Boolean);
   return partes.join(' - ') || 'Endereco nao informado';
 }
@@ -1999,9 +2139,10 @@ function getPessoaVinculosShare(p) {
   if ((p.vinculosInfo || '').trim()) linhas.push((p.vinculosInfo || '').trim());
   (p.vinculos || []).forEach(vk => {
     const outro = DB.pessoas.find(x => x.id === vk.pessoaId);
-    if (!outro) return;
-    const endereco = getPessoaEnderecoShare(outro);
-    linhas.push(`${vk.tipo}: ${outro.nome}${endereco ? ' - ' + endereco : ''}${vk.obs ? ' (' + vk.obs + ')' : ''}`);
+    const nome = outro ? outro.nome : (vk.nome || '');
+    const endereco = vk.endereco || (outro ? getPessoaEnderecoShare(outro) : '');
+    if (!nome && !endereco) return;
+    linhas.push(`${vk.tipo}: ${nome || 'vinculo'}${endereco ? ' - ' + endereco : ''}${vk.obs ? ' (' + vk.obs + ')' : ''}`);
   });
   return linhas.slice(0, 4).join('\n') || 'Sem vinculos ou enderecos alternativos cadastrados.';
 }
@@ -2135,19 +2276,20 @@ async function gerarPessoaShareCard(p) {
   ctx.strokeRect(20, 697, 680, 170);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Observacoes operacionais', 30, 724);
+  ctx.fillText('Endereco principal', 30, 724);
   ctx.fillStyle = '#111827';
   ctx.font = '20px Arial';
-  drawWrappedText(ctx, getPessoaObsShare(p), 30, 754, 660, 23, 5);
+  drawWrappedText(ctx, getPessoaEnderecoShare(p), 30, 754, 660, 23, 4);
 
   ctx.strokeStyle = '#d1d5db';
   ctx.strokeRect(20, 867, 680, 120);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Endereco principal', 30, 894);
+  ctx.fillText('Situacao atual', 30, 894);
   ctx.fillStyle = '#111827';
-  ctx.font = '20px Arial';
-  drawWrappedText(ctx, getPessoaEnderecoShare(p), 30, 924, 660, 23, 3);
+  ctx.font = 'bold 22px Arial';
+  ctx.fillStyle = situacao.color;
+  drawWrappedText(ctx, situacao.label, 30, 924, 660, 25, 2);
 
   ctx.strokeStyle = '#d1d5db';
   ctx.strokeRect(20, 987, 680, 201);

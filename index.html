@@ -121,6 +121,8 @@
         <span class="map-chip on" data-mf="baixa"      onclick="toggleMF('baixa')"><span class="dot" style="background:var(--pin-baixa)"></span>BAIXA</span>
         <span class="map-chip on" data-mf="media"      onclick="toggleMF('media')"><span class="dot" style="background:var(--pin-media)"></span>MÉDIA</span>
         <span class="map-chip on" data-mf="alta"       onclick="toggleMF('alta')"><span class="dot" style="background:var(--pin-alta)"></span>ALTA</span>
+        <span class="map-chip on" data-mf="veic_roubo" onclick="toggleMF('veic_roubo')"><span class="dot" style="background:var(--pin-alta)"></span>FURTO/ROUBO VEICULO</span>
+        <span class="map-chip on" data-mf="veic_recuperado" onclick="toggleMF('veic_recuperado')"><span class="dot" style="background:var(--pin-baixa)"></span>RECUPERACAO VEICULO</span>
         <span class="map-chip on" data-mf="residencia" onclick="toggleMF('residencia')"><span class="dot" style="background:var(--pin-res)"></span>RESIDÊNCIA</span>
         <span class="map-chip on" data-mf="local_poi"  onclick="toggleMF('local_poi')"><span class="dot" style="background:var(--pin-poi)"></span>LOCAIS</span>
       </div>
@@ -446,6 +448,11 @@
   <div class="modal-body">
     <div class="fg"><label class="fl">Pessoa Vinculada</label>
       <select class="fs" id="vk-pessoa"></select>
+      <div class="fhint">Use uma pessoa cadastrada ou deixe sem selecao para registrar um vinculo rapido.</div>
+    </div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Nome rapido</label><input class="fi" id="vk-nome" placeholder="Ex: mae, irmao, alcunha, contato"></div>
+      <div class="fg"><label class="fl">Endereco do vinculo</label><input class="fi" id="vk-endereco" placeholder="Rua, numero, bairro, cidade"></div>
     </div>
     <div class="fg"><label class="fl">Tipo de Relação</label>
       <select class="fs" id="vk-tipo">
@@ -484,6 +491,9 @@
       <div class="fg"><label class="fl">Tipo</label>
         <select class="fs" id="oc-tipo">
           <option value="ocorrencia">Ocorrencia</option>
+          <option value="furto_veiculo">Furto de veiculo</option>
+          <option value="roubo_veiculo">Roubo de veiculo</option>
+          <option value="recuperacao_veiculo">Recuperacao de veiculo</option>
           <option value="averiguacao">Averiguacao</option>
           <option value="abordagem">Abordagem</option>
           <option value="prisao">Prisao</option>
@@ -625,6 +635,9 @@
         <option value="apreendido">Apreendido</option>
         <option value="suspeito">Suspeito</option>
         <option value="vinculado">Vinculado</option>
+        <option value="furtado">Furtado</option>
+        <option value="roubado">Roubado</option>
+        <option value="recuperado">Recuperado</option>
       </select>
     </div>
     <div class="frow c3">
@@ -696,6 +709,9 @@
         <input class="fi" id="ml-end" placeholder="Rua, bairro, ponto de referência…" style="flex:1">
         <button class="btn sm" type="button" onclick="buscarEnderecoCampos('ml-end','ml-lat','ml-lng')">BUSCAR ENDERECO</button>
       </div>
+    </div>
+    <div class="fg" style="margin-top:-6px">
+      <button class="btn sm" type="button" id="ml-gps-btn" onclick="getGPS('ml-lat','ml-lng','ml-gps-btn','ml-end')">USAR LOCALIZACAO ATUAL</button>
     </div>
     <div class="frow c2">
       <div class="fg"><label class="fl">Latitude</label><input class="fi" id="ml-lat" placeholder="-29.7600"></div>

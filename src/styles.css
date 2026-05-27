@@ -1192,11 +1192,15 @@ header {
     flex-shrink: 0;
   }
 
-  #page-pessoas:not(.mobile-detail-open) .detail-panel {
+  #page-pessoas:not(.mobile-detail-open) .detail-panel,
+  #page-veiculos:not(.mobile-detail-open) .detail-panel,
+  #page-locais:not(.mobile-detail-open) .detail-panel {
     display: none;
   }
 
-  #page-pessoas:not(.mobile-detail-open) .list-panel {
+  #page-pessoas:not(.mobile-detail-open) .list-panel,
+  #page-veiculos:not(.mobile-detail-open) .list-panel,
+  #page-locais:not(.mobile-detail-open) .list-panel {
     flex: 0 0 auto;
     min-height: auto;
     height: auto;
@@ -1204,23 +1208,31 @@ header {
     overflow: visible;
   }
 
-  #page-pessoas:not(.mobile-detail-open) .scroll-list {
+  #page-pessoas:not(.mobile-detail-open) .scroll-list,
+  #page-veiculos:not(.mobile-detail-open) .scroll-list,
+  #page-locais:not(.mobile-detail-open) .scroll-list {
     flex: 0 0 auto;
     min-height: auto;
     overflow: visible;
   }
 
-  #page-pessoas.mobile-detail-open .list-panel {
+  #page-pessoas.mobile-detail-open .list-panel,
+  #page-veiculos.mobile-detail-open .list-panel,
+  #page-locais.mobile-detail-open .list-panel {
     display: none;
   }
 
-  #page-pessoas.mobile-detail-open {
+  #page-pessoas.mobile-detail-open,
+  #page-veiculos.mobile-detail-open,
+  #page-locais.mobile-detail-open {
     display: block;
     overflow: visible;
     -webkit-overflow-scrolling: touch;
   }
 
-  #page-pessoas.mobile-detail-open .detail-panel {
+  #page-pessoas.mobile-detail-open .detail-panel,
+  #page-veiculos.mobile-detail-open .detail-panel,
+  #page-locais.mobile-detail-open .detail-panel {
     display: block;
     width: 100%;
     min-width: 0;
@@ -1312,23 +1324,31 @@ header {
     padding-bottom: 110px;
   }
 
-  #page-pessoas.mobile-detail-open .detail-mobile-nav {
+  #page-pessoas.mobile-detail-open .detail-mobile-nav,
+  #page-veiculos.mobile-detail-open .detail-mobile-nav,
+  #page-locais.mobile-detail-open .detail-mobile-nav {
     width: 100%;
     position: static;
     z-index: 4;
   }
 
-  #page-pessoas.mobile-detail-open .detail-head {
+  #page-pessoas.mobile-detail-open .detail-head,
+  #page-veiculos.mobile-detail-open .detail-head,
+  #page-locais.mobile-detail-open .detail-head {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  #page-pessoas.mobile-detail-open .detail-head-actions {
+  #page-pessoas.mobile-detail-open .detail-head-actions,
+  #page-veiculos.mobile-detail-open .detail-head-actions,
+  #page-locais.mobile-detail-open .detail-head-actions {
     width: 100%;
     flex-wrap: wrap;
   }
 
-  #page-pessoas.mobile-detail-open .detail-head-actions .btn {
+  #page-pessoas.mobile-detail-open .detail-head-actions .btn,
+  #page-veiculos.mobile-detail-open .detail-head-actions .btn,
+  #page-locais.mobile-detail-open .detail-head-actions .btn {
     flex: 1 1 auto;
   }
 
@@ -1487,15 +1507,21 @@ header {
     display: flex;
   }
 
-  #page-pessoas:not(.mobile-detail-open) {
+  #page-pessoas:not(.mobile-detail-open),
+  #page-veiculos:not(.mobile-detail-open),
+  #page-locais:not(.mobile-detail-open) {
     flex-direction: row;
   }
 
-  #page-pessoas:not(.mobile-detail-open) .list-panel {
+  #page-pessoas:not(.mobile-detail-open) .list-panel,
+  #page-veiculos:not(.mobile-detail-open) .list-panel,
+  #page-locais:not(.mobile-detail-open) .list-panel {
     width: 100%;
   }
 
-  #page-pessoas.mobile-detail-open {
+  #page-pessoas.mobile-detail-open,
+  #page-veiculos.mobile-detail-open,
+  #page-locais.mobile-detail-open {
     display: block;
   }
 }
