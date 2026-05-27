@@ -27,6 +27,7 @@ function statusBadge(s) {
     recuperado: ['b-abordado',  'RECUPERADO'],
     suspeito:   ['b-conduzido', 'SUSPEITO'],
     clone:      ['b-clone',     'SUSPEITA DE CLONE'],
+    condutor_procurado: ['b-procurado', 'CONDUTOR PROCURADO/FORAGIDO'],
     apreendido: ['b-preso',     'APREENDIDO'],
     vinculado:  ['b-confirmado','VINCULADO'],
   };

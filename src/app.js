@@ -6,6 +6,7 @@ let confirmacaoTargetId = null;
 let vinculoTargetId = null;
 let andamentoOcorrenciaTargetId = null;
 let shareCardPessoaId = null;
+let shareCardVeiculoId = null;
 let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
@@ -1787,6 +1788,7 @@ function renderVeiculoDetail() {
           <div class="info-item span2"><div class="ilab">Condutor Vinculado</div><div class="ival ${!condutorVinculado?'empty':''}">${condutorVinculado ? `<span style="cursor:pointer;color:var(--accent)" onclick="goPage('pessoas');selectPessoa('${condutorVinculado.id}')">${condutorVinculado.nome}</span>` : '—'}</div></div>
         </div>
       </div>
+      <div class="info-section"><button class="btn sm primary" onclick="openVeiculoShareCard('${v.id}')">COMPARTILHAR VEICULO</button></div>
       ${v.foto ? `<div class="info-section"><div class="section-label">Foto</div><img src="${v.foto}" onclick="openPhotoViewer('${v.id}','veiculo')" title="Clique para ampliar" style="max-height:160px;border:1px solid var(--border);object-fit:cover;cursor:zoom-in" onerror="this.style.display='none'"></div>` : ''}
       ${v.obs ? `<div class="info-section"><div class="section-label">Observações</div><div class="ival" style="white-space:pre-wrap">${v.obs}</div></div>` : ''}
       ${Array.isArray(v.eventos) && v.eventos.length ? `
@@ -2371,11 +2373,10 @@ async function gerarPessoaShareCard(p) {
   ctx.strokeRect(20, 867, 680, 120);
   ctx.fillStyle = '#6b7280';
   ctx.font = '20px Arial';
-  ctx.fillText('Situacao atual', 30, 894);
+  ctx.fillText('Observacoes operacionais', 30, 894);
   ctx.fillStyle = '#111827';
-  ctx.font = 'bold 22px Arial';
-  ctx.fillStyle = situacao.color;
-  drawWrappedText(ctx, situacao.label, 30, 924, 660, 25, 2);
+  ctx.font = '20px Arial';
+  drawWrappedText(ctx, getPessoaObsShare(p), 30, 924, 660, 23, 3);
 
   ctx.strokeStyle = '#d1d5db';
   ctx.strokeRect(20, 987, 680, 201);
@@ -2394,12 +2395,136 @@ async function gerarPessoaShareCard(p) {
   return canvas.toDataURL('image/png');
 }
 
+function getVeiculoSituacao(v) {
+  const map = {
+    clone: ['SUSPEITA DE CLONE', '#008fa3'],
+    condutor_procurado: ['POSSIVEL PROCURADO/FORAGIDO NA CONDUCAO', '#b91c1c'],
+    roubado: ['ROUBADO', '#b91c1c'],
+    furtado: ['FURTADO', '#b91c1c'],
+    recuperado: ['RECUPERADO', '#1d4ed8'],
+    apreendido: ['APREENDIDO', '#6d28d9'],
+    suspeito: ['SUSPEITO', '#b45309'],
+    vinculado: ['VINCULADO', '#15803d'],
+    confirmado: ['CONFIRMADO', '#15803d'],
+  };
+  const [label, color] = map[v.status] || ['CADASTRADO', '#374151'];
+  return { label, color };
+}
+
+function getVeiculoLocalShare(v) {
+  const ev = (v.eventos || []).slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')))[0];
+  return ev && ev.local ? ev.local : 'Local do fato nao informado';
+}
+
+function getVeiculoPessoasShare(v) {
+  const nomes = new Set();
+  const condutor = DB.pessoas.find(p => p.id === v.condutorId);
+  if (condutor) nomes.add(condutor.nome);
+  if (v.condutor) nomes.add(v.condutor);
+  DB.pessoas.forEach(p => {
+    if ((p.eventos || []).some(ev => ev.veiculoPlaca && ev.veiculoPlaca.toUpperCase() === (v.placa || '').toUpperCase())) {
+      nomes.add(p.nome);
+    }
+  });
+  return Array.from(nomes).slice(0, 5).join(' | ') || 'Sem pessoas vinculadas no banco.';
+}
+
+async function gerarVeiculoShareCard(v) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 720;
+  canvas.height = 1080;
+  const ctx = canvas.getContext('2d');
+  const situacao = getVeiculoSituacao(v);
+  const hoje = new Date();
+  const dataFonte = hoje.toLocaleDateString('pt-BR');
+  const horaFonte = hoje.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const condutor = DB.pessoas.find(p => p.id === v.condutorId);
+
+  ctx.fillStyle = '#f3f4f6';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(20, 20, 680, 970);
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(20, 20, 680, 970);
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText('BDIntel', 42, 58);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '16px Arial';
+  ctx.fillText(`Cartao operacional de veiculo - ${dataFonte}`, 42, 82);
+
+  const img = await loadCanvasImage(v.foto);
+  const photoX = 90, photoY = 105, photoW = 540, photoH = 330;
+  ctx.fillStyle = '#e5e7eb';
+  ctx.fillRect(photoX, photoY, photoW, photoH);
+  if (img) {
+    const scale = Math.max(photoW / img.width, photoH / img.height);
+    const sw = photoW / scale;
+    const sh = photoH / scale;
+    ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, photoX, photoY, photoW, photoH);
+  } else {
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = 'bold 72px Arial';
+    ctx.fillText('SEM FOTO', 184, 300);
+  }
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 42px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText((v.placa || 'SEM PLACA').toUpperCase(), 360, 500);
+  ctx.textAlign = 'left';
+
+  drawField(ctx, 'Situacao', situacao.label, 20, 535, 680, 82, situacao.color);
+  drawField(ctx, 'Veiculo', [v.marca, v.modelo, v.cor, v.ano].filter(Boolean).join(' - ') || '-', 20, 617, 680, 82);
+  drawField(ctx, 'Proprietario informado', v.proprietario || '-', 20, 699, 330, 82);
+  drawField(ctx, 'Condutor', condutor ? condutor.nome : (v.condutor || '-'), 350, 699, 350, 82, v.status === 'condutor_procurado' ? '#b91c1c' : '#111827');
+
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(20, 781, 680, 96);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '20px Arial';
+  ctx.fillText('Local relacionado', 30, 808);
+  ctx.fillStyle = '#111827';
+  ctx.font = '20px Arial';
+  drawWrappedText(ctx, getVeiculoLocalShare(v), 30, 838, 660, 23, 2);
+
+  ctx.strokeStyle = '#d1d5db';
+  ctx.strokeRect(20, 877, 680, 113);
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '20px Arial';
+  ctx.fillText('Pessoas vinculadas', 30, 904);
+  ctx.fillStyle = '#111827';
+  ctx.font = '20px Arial';
+  drawWrappedText(ctx, getVeiculoPessoasShare(v), 30, 934, 660, 23, 3);
+
+  ctx.fillStyle = '#6b7280';
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(`Fonte: BDIntel | Posicao em: ${dataFonte} as ${horaFonte}`, 360, 1030);
+  ctx.textAlign = 'left';
+  return canvas.toDataURL('image/png');
+}
+
 async function openPessoaShareCard(id) {
   const p = DB.pessoas.find(x => x.id === id);
   if (!p) return;
   shareCardPessoaId = id;
+  shareCardVeiculoId = null;
   toast('Gerando cartao...');
   shareCardDataUrl = await gerarPessoaShareCard(p);
+  document.getElementById('share-card-img').src = shareCardDataUrl;
+  openOv('ov-share-card');
+}
+
+async function openVeiculoShareCard(id) {
+  const v = DB.veiculos.find(x => x.id === id);
+  if (!v) return;
+  shareCardVeiculoId = id;
+  shareCardPessoaId = null;
+  toast('Gerando cartao...');
+  shareCardDataUrl = await gerarVeiculoShareCard(v);
   document.getElementById('share-card-img').src = shareCardDataUrl;
   openOv('ov-share-card');
 }
@@ -2407,7 +2532,9 @@ async function openPessoaShareCard(id) {
 function baixarPessoaShareCard() {
   if (!shareCardDataUrl) return;
   const p = DB.pessoas.find(x => x.id === shareCardPessoaId);
-  const nome = (p && p.nome ? p.nome : 'bdintel').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
+  const v = DB.veiculos.find(x => x.id === shareCardVeiculoId);
+  const base = p ? p.nome : (v ? v.placa : 'bdintel');
+  const nome = (base || 'bdintel').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
   const a = document.createElement('a');
   a.href = shareCardDataUrl;
   a.download = `bdintel-${nome || 'cartao'}.png`;
@@ -2418,12 +2545,13 @@ async function compartilharPessoaShareCard() {
   if (!shareCardDataUrl) return;
   try {
     const p = DB.pessoas.find(x => x.id === shareCardPessoaId);
+    const v = DB.veiculos.find(x => x.id === shareCardVeiculoId);
     const blob = await (await fetch(shareCardDataUrl)).blob();
     const file = new File([blob], 'bdintel-cartao.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
       await navigator.share({
         title: 'BDIntel - Cartao operacional',
-        text: p ? `BDIntel - ${p.nome}` : 'BDIntel - Cartao operacional',
+        text: p ? `BDIntel - ${p.nome}` : (v ? `BDIntel - ${v.placa}` : 'BDIntel - Cartao operacional'),
         files: [file],
       });
     } else {
