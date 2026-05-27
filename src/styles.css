@@ -292,8 +292,12 @@ header {
   transition: all .12s;
 }
 .chip:hover { border-color: var(--border3); color: var(--text2); }
+.chip.on-cadastrado{ border-color: var(--border3); color: var(--text2); }
+.chip.on-confirmado{ border-color: var(--green2);  color: var(--green3); }
 .chip.on-abordado  { border-color: var(--blue2);   color: var(--blue3); }
-.chip.on-preso     { border-color: var(--red2);    color: var(--red3); }
+.chip.on-liberdade { border-color: var(--green2);  color: var(--green3); }
+.chip.on-preso     { border-color: var(--purple2); color: var(--purple3); }
+.chip.on-procurado { border-color: var(--red2);    color: var(--red3); }
 .chip.on-conduzido { border-color: var(--yellow2); color: var(--yellow3); }
 .chip.on-testemunha{ border-color: var(--purple2); color: var(--purple3); }
 .chip.on-vitima    { border-color: var(--green2);  color: var(--green3); }
@@ -373,7 +377,9 @@ header {
 .b-abordado  { color: var(--blue3);   border-color: var(--blue2);   background: rgba(64,144,224,.08); }
 .b-cadastrado{ color: var(--text2);   border-color: var(--border2); background: rgba(80,88,112,.06); }
 .b-confirmado{ color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.08); }
-.b-preso     { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.1); }
+.b-liberdade { color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.1); }
+.b-preso     { color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.12); }
+.b-procurado { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.14); }
 .b-conduzido { color: var(--yellow3); border-color: var(--yellow2); background: rgba(192,160,32,.08); }
 .b-testemunha{ color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.08); }
 .b-vitima    { color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.08); }
@@ -744,6 +750,20 @@ header {
   font-size: 14px;
   font-weight: 700;
 }
+.oc-status-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border: 1px solid var(--border2);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1px;
+  vertical-align: middle;
+}
+.st-analise   { color: var(--yellow3); border-color: var(--yellow2); background: rgba(192,160,32,.08); }
+.st-andamento { color: var(--blue3);   border-color: var(--blue2);   background: rgba(64,144,224,.08); }
+.st-vinculada { color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.1); }
+.st-concluida { color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.1); }
 .oc-sub {
   font-family: var(--font-mono);
   font-size: 10px;

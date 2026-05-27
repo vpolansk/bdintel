@@ -89,8 +89,10 @@
           <span class="chip on-all" data-sf="all" onclick="setSF('all')">TODOS</span>
           <span class="chip" data-sf="cadastrado" onclick="setSF('cadastrado')">CADASTRADO</span>
           <span class="chip" data-sf="confirmado" onclick="setSF('confirmado')">CONFIRMADO</span>
+          <span class="chip" data-sf="liberdade" onclick="setSF('liberdade')">EM LIBERDADE</span>
           <span class="chip" data-sf="abordado"   onclick="setSF('abordado')">ABORDADO</span>
           <span class="chip" data-sf="preso"      onclick="setSF('preso')">PRESO</span>
+          <span class="chip" data-sf="procurado"  onclick="setSF('procurado')">PROCURADO</span>
           <span class="chip" data-sf="conduzido"  onclick="setSF('conduzido')">CONDUZIDO</span>
           <span class="chip" data-sf="testemunha" onclick="setSF('testemunha')">TESTEMUNHA</span>
           <span class="chip" data-sf="vitima"     onclick="setSF('vitima')">VÍTIMA</span>
@@ -253,9 +255,11 @@
         <select class="fs" id="mp-status">
           <option value="cadastrado">Cadastrado</option>
           <option value="confirmado">Confirmado</option>
+          <option value="liberdade">Em liberdade</option>
           <option value="abordado">Abordado</option>
           <option value="averiguado">Averiguado</option>
-          <option value="preso">Preso / Condenado</option>
+          <option value="preso">Preso</option>
+          <option value="procurado">Procurado / Foragido</option>
           <option value="conduzido">Conduzido</option>
           <option value="testemunha">Testemunha</option>
           <option value="vitima">Vítima</option>
@@ -411,6 +415,14 @@
     <div class="fg"><label class="fl">Dados confirmados / atualizados</label>
       <textarea class="fta" id="cf-obs" placeholder="Ex: confirmou endereço, alcunha, telefone, veículo, vínculo, foto atualizada..."></textarea>
     </div>
+    <div class="fg"><label class="fl">Atualizar foto, se necessario</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="fi" id="cf-foto" placeholder="Link da foto ou arquivo capturado" style="flex:1">
+        <input type="file" id="cf-foto-file" accept="image/*" capture="environment" style="display:none" onchange="previewConfirmacaoFotoFile(this)">
+        <button class="btn sm" type="button" onclick="document.getElementById('cf-foto-file').click()">CAMERA/GALERIA</button>
+      </div>
+      <div class="fhint">Se uma foto for adicionada aqui, ela substitui a foto principal e registra a data da atualizacao.</div>
+    </div>
     <label style="display:flex;gap:8px;align-items:center;color:var(--text2);font-size:12px">
       <input type="checkbox" id="cf-abordado">
       Houve abordagem nesta confirmação
@@ -489,6 +501,14 @@
       <div class="fg"><label class="fl">Data *</label><input class="fi" id="oc-data" type="date"></div>
       <div class="fg"><label class="fl">Hora</label><input class="fi" id="oc-hora" type="time"></div>
     </div>
+    <div class="fg"><label class="fl">Status da Ocorrencia</label>
+      <select class="fs" id="oc-status">
+        <option value="analise">Em analise</option>
+        <option value="andamento">Em andamento</option>
+        <option value="vinculada">Vinculada a pessoa/veiculo</option>
+        <option value="concluida">Concluida</option>
+      </select>
+    </div>
     <div class="fg"><label class="fl">Local / Referencia *</label>
       <div style="display:flex;gap:6px;align-items:center">
         <input class="fi" id="oc-local" placeholder="Rua, bairro, cidade ou ponto de referencia" style="flex:1">
@@ -527,6 +547,64 @@
 </div>
 
 <!-- MODAL: VEÍCULO -->
+<div class="overlay" id="ov-oc-andamento">
+<div class="modal wide">
+  <div class="modal-hd">
+    <span class="modal-title">ADICIONAR ANDAMENTO</span>
+    <button class="modal-close" onclick="closeOv('ov-oc-andamento')">×</button>
+  </div>
+  <div class="modal-body">
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Tipo de Andamento</label>
+        <select class="fs" id="oa-tipo">
+          <option value="diligencia">Diligencia / levantamento</option>
+          <option value="vitima">Dados da vitima</option>
+          <option value="objeto">Objeto subtraido / recuperado</option>
+          <option value="imagem">Imagem / camera obtida</option>
+          <option value="veiculo">Veiculo suspeito</option>
+          <option value="modo">Modo operandi</option>
+          <option value="autoria">Autoria / suspeito identificado</option>
+          <option value="informacao">Informacao complementar</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Data</label><input class="fi" id="oa-data" type="date"></div>
+    </div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Hora</label><input class="fi" id="oa-hora" type="time"></div>
+      <div class="fg"><label class="fl">Referencia</label><input class="fi" id="oa-ref" placeholder="Ex: camera da loja, placa parcial, BO..."></div>
+    </div>
+    <div class="fg"><label class="fl">Endereco / Local da coleta</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input class="fi" id="oa-local" placeholder="Rua, numero, bairro, cidade ou ponto de referencia" style="flex:1">
+        <button class="btn sm" type="button" onclick="buscarEnderecoCampos('oa-local','oa-lat','oa-lng')">BUSCAR</button>
+      </div>
+    </div>
+    <div class="frow c2">
+      <div class="fg"><label class="fl">Latitude</label><input class="fi" id="oa-lat" placeholder="-29.7600"></div>
+      <div class="fg"><label class="fl">Longitude</label><input class="fi" id="oa-lng" placeholder="-51.1500"></div>
+    </div>
+    <div class="fg" style="margin-top:-6px">
+      <button class="btn sm" type="button" id="oa-gps-btn" onclick="getGPS('oa-lat','oa-lng','oa-gps-btn','oa-local')">USAR LOCALIZACAO ATUAL</button>
+    </div>
+    <div class="fg"><label class="fl">Possiveis suspeitos / pessoas vinculadas</label>
+      <select class="fs" id="oa-pessoas" multiple style="min-height:100px"></select>
+      <div class="fhint">Ao selecionar pessoas aqui, elas tambem ficam vinculadas na ocorrencia.</div>
+    </div>
+    <div class="fg"><label class="fl">Veiculos suspeitos / relacionados</label><input class="fi" id="oa-veiculos" placeholder="Placa, cor, modelo, caracteristicas ou descricao"></div>
+    <div class="fg"><label class="fl">Anotacao objetiva</label>
+      <textarea class="fta" style="min-height:70px" id="oa-notas" placeholder="Ex: local da camera, quem repassou, horario aproximado, detalhe relevante..."></textarea>
+    </div>
+    <div class="fg"><label class="fl">Relato / Informacao *</label>
+      <textarea class="fta" style="min-height:120px" id="oa-texto" placeholder="Descreva o que foi apurado, dados da vitima, objetos, imagens, veiculo, caracteristicas, possivel autoria..."></textarea>
+    </div>
+  </div>
+  <div class="modal-ft">
+    <button class="btn" onclick="closeOv('ov-oc-andamento')">CANCELAR</button>
+    <button class="btn primary" onclick="saveOcorrenciaAndamento()">ADICIONAR</button>
+  </div>
+</div>
+</div>
+
 <div class="overlay" id="ov-veiculo">
 <div class="modal">
   <div class="modal-hd">

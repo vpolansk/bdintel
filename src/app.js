@@ -212,6 +212,7 @@ function renderDTab() {
           <div class="info-item"><div class="ilab">Nascimento</div><div class="ival mono">${fmtDate(p.nascimento)}${age?' · '+age:''}</div></div>
           <div class="info-item"><div class="ilab">RG</div><div class="ival mono ${!p.rg?'empty':''}">${p.rg||'—'}</div></div>
           <div class="info-item"><div class="ilab">CPF</div><div class="ival mono ${!p.cpf?'empty':''}">${p.cpf||'—'}</div></div>
+          <div class="info-item"><div class="ilab">Foto atualizada</div><div class="ival mono ${!p.fotoAtualizadaEm?'empty':''}">${p.fotoAtualizadaEm ? fmtDate(p.fotoAtualizadaEm) : '—'}</div></div>
           <div class="info-item span2"><div class="ilab">Nome da Mãe</div><div class="ival ${!p.mae?'empty':''}">${p.mae||'—'}</div></div>
         </div>
       </div>
@@ -664,8 +665,20 @@ function openModal_confirmacao(pessoaId) {
   document.getElementById('cf-viatura').value = '';
   document.getElementById('cf-ba').value = '';
   document.getElementById('cf-obs').value = '';
+  document.getElementById('cf-foto').value = '';
+  document.getElementById('cf-foto-file').value = '';
   document.getElementById('cf-abordado').checked = false;
   openOv('ov-confirmar');
+}
+
+function previewConfirmacaoFotoFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('cf-foto').value = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function saveConfirmacaoDados() {
@@ -674,6 +687,8 @@ function saveConfirmacaoDados() {
   const obs = document.getElementById('cf-obs').value.trim();
   const local = document.getElementById('cf-local').value.trim() || 'Dados confirmados';
   const houveAbordagem = document.getElementById('cf-abordado').checked;
+  const fotoAtualizada = document.getElementById('cf-foto').value.trim();
+  const fotoAtualizadaEm = fotoAtualizada ? document.getElementById('cf-data').value : '';
   const ev = {
     tipo: houveAbordagem ? 'abordagem' : 'confirmacao',
     data: document.getElementById('cf-data').value,
@@ -681,9 +696,13 @@ function saveConfirmacaoDados() {
     local,
     viatura: document.getElementById('cf-viatura').value.trim(),
     ba: document.getElementById('cf-ba').value.trim(),
-    historico: obs || (houveAbordagem ? 'Dados confirmados durante abordagem.' : 'Dados cadastrais confirmados.'),
+    historico: [obs || (houveAbordagem ? 'Dados confirmados durante abordagem.' : 'Dados cadastrais confirmados.'), fotoAtualizada ? 'Foto atualizada.' : ''].filter(Boolean).join('\n'),
     resultado: houveAbordagem ? 'Dados confirmados' : 'Confirmação cadastral',
   };
+  if (fotoAtualizada) {
+    p.foto = fotoAtualizada;
+    p.fotoAtualizadaEm = fotoAtualizadaEm;
+  }
   if (!p.eventos) p.eventos = [];
   p.eventos.push(ev);
   p.status = houveAbordagem ? 'abordado' : 'confirmado';
@@ -758,6 +777,7 @@ function saveEvento() {
     veiculos: ev.veiculoPlaca,
     pessoasIds: [p.id],
     historico: ev.historico,
+    status: 'vinculada',
     andamentos: [],
     motivo: ev.motivo,
     resultado: ev.resultado,
@@ -838,14 +858,40 @@ function getOcorrenciaPessoas(oc) {
   return DB.pessoas.filter(p => ids.includes(p.id));
 }
 
+function getOcorrenciaStatus(oc) {
+  if (oc && oc.status) return oc.status;
+  if (oc && ((oc.pessoasIds || []).length || (oc.veiculos || '').trim())) return 'vinculada';
+  return 'andamento';
+}
+
+function ocorrenciaStatusBadge(oc) {
+  const status = getOcorrenciaStatus(oc);
+  const map = {
+    analise: ['oc-status-badge st-analise', 'EM ANALISE'],
+    andamento: ['oc-status-badge st-andamento', 'EM ANDAMENTO'],
+    vinculada: ['oc-status-badge st-vinculada', 'VINCULADA'],
+    concluida: ['oc-status-badge st-concluida', 'CONCLUIDA'],
+  };
+  const [cls, label] = map[status] || map.andamento;
+  return `<span class="${cls}">${label}</span>`;
+}
+
+function mergeCsvText(base, extra) {
+  const parts = [base, extra]
+    .flatMap(v => String(v || '').split(/[;,]/))
+    .map(v => v.trim())
+    .filter(Boolean);
+  return Array.from(new Set(parts.map(v => v.toUpperCase()))).map(up => parts.find(v => v.toUpperCase() === up)).join(', ');
+}
+
 function renderOcorrenciasList() {
   const search = document.getElementById('ocorrencias-search');
   const q = search ? search.value.toLowerCase().trim() : '';
   const list = (DB.ocorrencias || []).filter(oc => {
     if (!q) return true;
     const nomes = getOcorrenciaPessoas(oc).map(p => p.nome).join(' ');
-    const andamentos = (oc.andamentos || []).map(a => [a.tipo, a.referencia, a.texto].join(' ')).join(' ');
-    return [oc.local, oc.historico, oc.ba, oc.veiculos, nomes, andamentos, tipoLabel(oc.tipo || 'ocorrencia')].join(' ').toLowerCase().includes(q);
+    const andamentos = (oc.andamentos || []).map(a => [a.tipo, a.referencia, a.local, a.veiculos, a.notas, a.texto].join(' ')).join(' ');
+    return [oc.local, oc.historico, oc.ba, oc.veiculos, nomes, andamentos, tipoLabel(oc.tipo || 'ocorrencia'), getOcorrenciaStatus(oc)].join(' ').toLowerCase().includes(q);
   }).sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')));
 
   const cnt = document.getElementById('cnt-ocorrencias');
@@ -860,7 +906,7 @@ function renderOcorrenciasList() {
     const style = getEventoMapStyle(oc);
     const pessoas = getOcorrenciaPessoas(oc);
     return `<div class="ocorrencia-card${selOcorrencia===oc.id?' sel':''}" onclick="selectOcorrencia('${oc.id}')">
-      <div class="oc-title">${tipoLabel(oc.tipo || 'ocorrencia')} - ${style.label}</div>
+      <div class="oc-title">${tipoLabel(oc.tipo || 'ocorrencia')} - ${style.label} ${ocorrenciaStatusBadge(oc)}</div>
       <div class="oc-sub">${fmtDate(oc.data)}${oc.hora?' - '+oc.hora:''} - ${getOcorrenciaTitulo(oc)}</div>
       <div class="oc-sub">${pessoas.length ? pessoas.map(p => p.nome).join(', ') : 'Sem pessoa vinculada'}${oc.veiculos ? ' - ' + oc.veiculos : ''}</div>
     </div>`;
@@ -882,15 +928,17 @@ function renderOcorrenciaDetail() {
   el.classList.remove('blank');
   const pessoas = getOcorrenciaPessoas(oc);
   const style = getEventoMapStyle(oc);
+  const status = getOcorrenciaStatus(oc);
   el.innerHTML = `
     <div class="detail-head">
       <div class="detail-head-info">
         <div class="detail-name">${tipoLabel(oc.tipo || 'ocorrencia')}</div>
-        <div class="detail-meta">${style.label} - ${fmtDate(oc.data)}${oc.hora?' - '+oc.hora:''}</div>
+        <div class="detail-meta">${style.label} - ${fmtDate(oc.data)}${oc.hora?' - '+oc.hora:''} ${ocorrenciaStatusBadge(oc)}</div>
         <div class="detail-meta">${oc.local || 'Sem local informado'}</div>
       </div>
       <div class="detail-head-actions">
         <button class="btn sm primary" onclick="openModal_ocorrenciaAndamento('${oc.id}')">+ ANDAMENTO</button>
+        ${status !== 'concluida' ? `<button class="btn sm" onclick="concluirOcorrencia('${oc.id}')">CONCLUIR</button>` : ''}
         <button class="btn sm" onclick="openModal_ocorrencia('${oc.id}')">EDITAR</button>
         <button class="btn sm danger" onclick="deleteOcorrencia('${oc.id}')">EXCLUIR</button>
       </div>
@@ -956,6 +1004,10 @@ function renderOcorrenciaAndamentosSection(oc) {
               </div>
               <div class="tl-card">
                 ${a.referencia ? `<div class="tl-local">${a.referencia}</div>` : ''}
+                ${a.local ? `<div class="tl-local">Local: ${a.local}</div>` : ''}
+                ${a.veiculos ? `<div class="tl-local">Veiculos: ${a.veiculos}</div>` : ''}
+                ${a.pessoasIds && a.pessoasIds.length ? `<div class="tl-local">Pessoas: ${DB.pessoas.filter(p => a.pessoasIds.includes(p.id)).map(p => p.nome).join(', ')}</div>` : ''}
+                ${a.notas ? `<div class="tl-desc"><strong>Nota objetiva:</strong> ${a.notas}</div>` : ''}
                 <div class="tl-desc">${a.texto || '-'}</div>
                 <div class="tl-actions">
                   <button class="btn sm danger" onclick="deleteOcorrenciaAndamento('${oc.id}',${idx})">EXCLUIR</button>
@@ -978,13 +1030,30 @@ function fillOcorrenciaPessoasOptions(selectedIds = []) {
     .join('');
 }
 
+function fillAndamentoPessoasOptions(selectedIds = []) {
+  const sel = document.getElementById('oa-pessoas');
+  if (!sel) return;
+  const ids = new Set(selectedIds);
+  sel.innerHTML = DB.pessoas
+    .slice()
+    .sort((a,b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
+    .map(p => `<option value="${p.id}"${ids.has(p.id) ? ' selected' : ''}>${p.nome || 'Sem nome'}${p.alcunha ? ' - ' + p.alcunha : ''}</option>`)
+    .join('');
+}
+
 function openModal_ocorrenciaAndamento(ocorrenciaId) {
   andamentoOcorrenciaTargetId = ocorrenciaId;
   document.getElementById('oa-tipo').value = 'diligencia';
   document.getElementById('oa-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('oa-hora').value = new Date().toTimeString().slice(0,5);
   document.getElementById('oa-ref').value = '';
+  document.getElementById('oa-local').value = '';
+  document.getElementById('oa-lat').value = '';
+  document.getElementById('oa-lng').value = '';
+  document.getElementById('oa-veiculos').value = '';
+  document.getElementById('oa-notas').value = '';
   document.getElementById('oa-texto').value = '';
+  fillAndamentoPessoasOptions([]);
   openOv('ov-oc-andamento');
 }
 
@@ -993,6 +1062,10 @@ function saveOcorrenciaAndamento() {
   if (!oc) return;
   const texto = document.getElementById('oa-texto').value.trim();
   if (!texto) { toast('Informe o relato do andamento.', true); return; }
+  const lat = parseFloat(document.getElementById('oa-lat').value);
+  const lng = parseFloat(document.getElementById('oa-lng').value);
+  const pessoasIds = Array.from(document.getElementById('oa-pessoas').selectedOptions).map(opt => opt.value);
+  const veiculos = document.getElementById('oa-veiculos').value.trim();
   if (!Array.isArray(oc.andamentos)) oc.andamentos = [];
   oc.andamentos.push({
     id: uid(),
@@ -1000,12 +1073,27 @@ function saveOcorrenciaAndamento() {
     data: document.getElementById('oa-data').value,
     hora: document.getElementById('oa-hora').value,
     referencia: document.getElementById('oa-ref').value.trim(),
+    local: document.getElementById('oa-local').value.trim(),
+    lat: isNaN(lat) ? null : lat,
+    lng: isNaN(lng) ? null : lng,
+    pessoasIds,
+    veiculos,
+    notas: document.getElementById('oa-notas').value.trim(),
     texto,
   });
+  if (!Array.isArray(oc.pessoasIds)) oc.pessoasIds = [];
+  oc.pessoasIds = Array.from(new Set([...oc.pessoasIds, ...pessoasIds]));
+  if (veiculos) oc.veiculos = mergeCsvText(oc.veiculos, veiculos);
+  if (oc.status !== 'concluida') {
+    oc.status = (oc.pessoasIds.length || (oc.veiculos || '').trim()) ? 'vinculada' : 'andamento';
+  }
+  syncOcorrenciaComPessoas(oc);
   saveDB();
   closeOv('ov-oc-andamento');
   renderOcorrenciaDetail();
   renderOcorrenciasList();
+  renderPessoaDetail();
+  renderMapMarkers();
   toast('Andamento adicionado.');
 }
 
@@ -1015,11 +1103,37 @@ function deleteOcorrenciaAndamento(ocorrenciaId, idx) {
   if (!oc || !Array.isArray(oc.andamentos)) return;
   const ordered = oc.andamentos.slice().sort((a,b) => ((b.data||'') + (b.hora||'')).localeCompare((a.data||'') + (a.hora||'')));
   const item = ordered[idx];
-  oc.andamentos = oc.andamentos.filter(a => a.id !== item.id);
+  if (!item) return;
+  if (item.id) {
+    oc.andamentos = oc.andamentos.filter(a => a.id !== item.id);
+  } else {
+    const originalIdx = oc.andamentos.indexOf(item);
+    if (originalIdx >= 0) oc.andamentos.splice(originalIdx, 1);
+  }
   saveDB();
   renderOcorrenciaDetail();
   renderOcorrenciasList();
   toast('Andamento excluido.');
+}
+
+function concluirOcorrencia(id) {
+  const oc = (DB.ocorrencias || []).find(x => x.id === id);
+  if (!oc) return;
+  oc.status = 'concluida';
+  if (!Array.isArray(oc.andamentos)) oc.andamentos = [];
+  oc.andamentos.push({
+    id: uid(),
+    tipo: 'informacao',
+    data: new Date().toISOString().slice(0,10),
+    hora: new Date().toTimeString().slice(0,5),
+    referencia: 'Ocorrencia concluida',
+    texto: 'Ocorrencia marcada como concluida.',
+  });
+  saveDB();
+  renderOcorrenciaDetail();
+  renderOcorrenciasList();
+  renderPessoaDetail();
+  toast('Ocorrencia marcada como concluida.');
 }
 
 function setOcorrenciaCoords(lat, lng, moveMap = true) {
@@ -1083,6 +1197,7 @@ function openModal_ocorrencia(id) {
   document.getElementById('m-ocorrencia-title').textContent = id ? 'EDITAR OCORRENCIA' : 'CADASTRAR OCORRENCIA';
   document.getElementById('oc-tipo').value = 'ocorrencia';
   document.getElementById('oc-gravidade').value = 'media';
+  document.getElementById('oc-status').value = 'analise';
   document.getElementById('oc-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('oc-hora').value = new Date().toTimeString().slice(0,5);
   ['local','lat','lng','ba','veiculos','historico'].forEach(f => document.getElementById('oc-' + f).value = '');
@@ -1092,6 +1207,7 @@ function openModal_ocorrencia(id) {
     if (!oc) return;
     document.getElementById('oc-tipo').value = oc.tipo || 'ocorrencia';
     document.getElementById('oc-gravidade').value = oc.gravidade || 'media';
+    document.getElementById('oc-status').value = getOcorrenciaStatus(oc);
     document.getElementById('oc-data').value = oc.data || '';
     document.getElementById('oc-hora').value = oc.hora || '';
     document.getElementById('oc-local').value = oc.local || '';
@@ -1139,6 +1255,7 @@ function saveOcorrencia() {
   const data = {
     tipo: document.getElementById('oc-tipo').value,
     gravidade: document.getElementById('oc-gravidade').value,
+    status: document.getElementById('oc-status').value,
     data: document.getElementById('oc-data').value,
     hora: document.getElementById('oc-hora').value,
     local,

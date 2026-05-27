@@ -13,8 +13,10 @@ function statusBadge(s) {
   const map = {
     cadastrado: ['b-cadastrado','CADASTRADO'],
     confirmado: ['b-confirmado','CONFIRMADO'],
+    liberdade:  ['b-liberdade', 'EM LIBERDADE'],
     abordado:   ['b-abordado',  'ABORDADO'],
     preso:      ['b-preso',     'PRESO'],
+    procurado:  ['b-procurado', 'PROCURADO/FORAGIDO'],
     conduzido:  ['b-conduzido', 'CONDUZIDO'],
     testemunha: ['b-testemunha','TESTEMUNHA'],
     vitima:     ['b-vitima',    'VÍTIMA'],
