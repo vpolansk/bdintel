@@ -123,6 +123,7 @@
         <span class="map-chip on" data-mf="alta"       onclick="toggleMF('alta')"><span class="dot" style="background:var(--pin-alta)"></span>ALTA</span>
         <span class="map-chip on" data-mf="veic_roubo" onclick="toggleMF('veic_roubo')"><span class="dot" style="background:var(--pin-alta)"></span>FURTO/ROUBO VEICULO</span>
         <span class="map-chip on" data-mf="veic_recuperado" onclick="toggleMF('veic_recuperado')"><span class="dot" style="background:var(--pin-baixa)"></span>RECUPERACAO VEICULO</span>
+        <span class="map-chip on" data-mf="veic_clone" onclick="toggleMF('veic_clone')"><span class="dot" style="background:var(--pin-clone)"></span>SUSPEITA DE CLONE</span>
         <span class="map-chip on" data-mf="residencia" onclick="toggleMF('residencia')"><span class="dot" style="background:var(--pin-res)"></span>RESIDÊNCIA</span>
         <span class="map-chip on" data-mf="local_poi"  onclick="toggleMF('local_poi')"><span class="dot" style="background:var(--pin-poi)"></span>LOCAIS</span>
       </div>
@@ -638,6 +639,7 @@
         <option value="abordado">Abordado</option>
         <option value="apreendido">Apreendido</option>
         <option value="suspeito">Suspeito</option>
+        <option value="clone">Suspeita de clone</option>
         <option value="vinculado">Vinculado</option>
         <option value="furtado">Furtado</option>
         <option value="roubado">Roubado</option>
@@ -683,7 +685,7 @@
     </div>
     <div class="info-section" style="margin:8px 0 0">
       <div class="section-label">Local do fato do veiculo</div>
-      <div class="fhint" style="margin-bottom:8px">Use quando marcar como furtado, roubado ou recuperado. O ponto entra na linha do tempo e no mapa.</div>
+      <div class="fhint" style="margin-bottom:8px">Use quando marcar como furtado, roubado, recuperado ou suspeita de clone. O ponto entra na linha do tempo e no mapa.</div>
       <div class="frow c2">
         <div class="fg"><label class="fl">Data do fato</label><input class="fi" id="mv-evento-data" type="date"></div>
         <div class="fg"><label class="fl">Hora</label><input class="fi" id="mv-evento-hora" type="time"></div>

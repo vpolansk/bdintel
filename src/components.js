@@ -26,6 +26,7 @@ function statusBadge(s) {
     roubado:    ['b-procurado', 'ROUBADO'],
     recuperado: ['b-abordado',  'RECUPERADO'],
     suspeito:   ['b-conduzido', 'SUSPEITO'],
+    clone:      ['b-clone',     'SUSPEITA DE CLONE'],
     apreendido: ['b-preso',     'APREENDIDO'],
     vinculado:  ['b-confirmado','VINCULADO'],
   };
@@ -33,7 +34,7 @@ function statusBadge(s) {
   return `<span class="badge ${cls}">${label}</span>`;
 }
 function tipoLabel(t) {
-  return { cadastro:'CADASTRO INICIAL', confirmacao:'CONFIRMAÇÃO DE DADOS', abordagem:'ABORDAGEM', prisao:'PRISÃO EM FLAGRANTE', conducao:'CONDUÇÃO', averiguacao:'AVERIGUAÇÃO', ocorrencia:'OCORRÊNCIA', furto_veiculo:'FURTO DE VEICULO', roubo_veiculo:'ROUBO DE VEICULO', recuperacao_veiculo:'RECUPERACAO DE VEICULO' }[t] || t.toUpperCase();
+  return { cadastro:'CADASTRO INICIAL', confirmacao:'CONFIRMAÇÃO DE DADOS', abordagem:'ABORDAGEM', prisao:'PRISÃO EM FLAGRANTE', conducao:'CONDUÇÃO', averiguacao:'AVERIGUAÇÃO', ocorrencia:'OCORRÊNCIA', furto_veiculo:'FURTO DE VEICULO', roubo_veiculo:'ROUBO DE VEICULO', recuperacao_veiculo:'RECUPERACAO DE VEICULO', clone_veiculo:'SUSPEITA DE CLONE' }[t] || t.toUpperCase();
 }
 function tipoClass(t) {
   if (t === 'cadastro' || t === 'confirmacao') return 'confirmacao';

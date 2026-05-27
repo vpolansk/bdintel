@@ -44,6 +44,7 @@
   --pin-baixa:  #40c068;
   --pin-media:  #f0a830;
   --pin-alta:   #e05050;
+  --pin-clone:  #00e5ff;
   --pin-res:    #40c068;
   --pin-recorr: #a060f0;
   --pin-poi:    #909090;
@@ -382,6 +383,7 @@ header {
 .b-preso     { color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.12); }
 .b-procurado { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.14); }
 .b-foragido  { color: var(--red3);    border-color: var(--red2);    background: rgba(192,48,48,.14); }
+.b-clone     { color: #00e5ff;        border-color: #00a8c8;       background: rgba(0,229,255,.12); }
 .b-conduzido { color: var(--yellow3); border-color: var(--yellow2); background: rgba(192,160,32,.08); }
 .b-testemunha{ color: var(--purple3); border-color: var(--purple2); background: rgba(112,48,192,.08); }
 .b-vitima    { color: var(--green3);  border-color: var(--green2);  background: rgba(40,136,74,.08); }

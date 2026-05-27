@@ -9,7 +9,7 @@ let shareCardPessoaId = null;
 let shareCardDataUrl = '';
 let mapMain = null, mapMarkers = null;
 let ocorrenciaPickerMap = null, ocorrenciaPickerMarker = null;
-let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, residencia: true, local_poi: true };
+let mapFilters = { abordagem: true, prisao: true, averiguacao: true, baixa: true, media: true, alta: true, veic_roubo: true, veic_recuperado: true, veic_clone: true, residencia: true, local_poi: true };
 /* ══════════════════════════════════════════════════════════════
    NAV / PAGES
 ══════════════════════════════════════════════════════════════ */
@@ -1494,6 +1494,9 @@ function getEventoGravidade(ev) {
 }
 
 function getEventoMapStyle(ev) {
+  if (ev.tipo === 'clone_veiculo') {
+    return { key: 'veic_clone', color: 'var(--pin-clone)', label: 'SUSPEITA DE CLONE' };
+  }
   if (ev.tipo === 'furto_veiculo' || ev.tipo === 'roubo_veiculo') {
     return { key: 'veic_roubo', color: 'var(--pin-alta)', label: ev.tipo === 'roubo_veiculo' ? 'ROUBO DE VEICULO' : 'FURTO DE VEICULO' };
   }
@@ -1637,7 +1640,7 @@ function renderCondutorOptions(selectedId = '') {
 }
 
 function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
-  if (!['furtado', 'roubado', 'recuperado'].includes(status)) return;
+  if (!['furtado', 'roubado', 'recuperado', 'clone'].includes(status)) return;
   const localEl = document.getElementById('mv-evento-local');
   if (!localEl) return;
   const local = localEl.value.trim();
@@ -1645,7 +1648,7 @@ function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
   const lat = parseFloat(document.getElementById('mv-evento-lat').value);
   const lng = parseFloat(document.getElementById('mv-evento-lng').value);
   if (!Array.isArray(veiculo.eventos)) veiculo.eventos = [];
-  const tipo = status === 'recuperado' ? 'recuperacao_veiculo' : (status === 'roubado' ? 'roubo_veiculo' : 'furto_veiculo');
+  const tipo = status === 'clone' ? 'clone_veiculo' : (status === 'recuperado' ? 'recuperacao_veiculo' : (status === 'roubado' ? 'roubo_veiculo' : 'furto_veiculo'));
   veiculo.eventos.push({
     id: uid(),
     tipo,
@@ -1654,7 +1657,7 @@ function addVeiculoEventoManual(veiculo, status, source = 'cadastro_veiculo') {
     local,
     lat: isNaN(lat) ? null : lat,
     lng: isNaN(lng) ? null : lng,
-    historico: `Registro manual: veiculo ${status}.`,
+    historico: `Registro manual: veiculo ${status === 'clone' ? 'com suspeita de clone' : status}.`,
     source,
   });
 }
